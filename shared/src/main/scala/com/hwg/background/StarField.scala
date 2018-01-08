@@ -35,7 +35,7 @@ object StarField {
     //Create the grid
     val cellSize = maxRadius / Math.sqrt(2)
 
-    val grid: Grid = new Array((Math.ceil(width / cellSize) * Math.ceil(height / cellSize)).toInt)(ArrayBuffer())
+    val grid: Grid = Array.fill((Math.ceil(width / cellSize) * Math.ceil(height / cellSize)).toInt)(ArrayBuffer())
 
     //RandomQueue works like a queue, except that it
     //pops a random element from the queue instead of
@@ -125,7 +125,7 @@ object StarField {
     }).filter((point) => {
       inSquare(point, width, height)
     }).flatMap((gridPoint) => {
-      grid(gridPoint.x + gridPoint.y * Math.floor(width / cellSize))
+      grid((gridPoint.x + gridPoint.y * Math.floor(width / cellSize)).toInt)
     })
   }
 

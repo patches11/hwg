@@ -1,7 +1,9 @@
 package com.hwg.util
 
+import scala.reflect.ClassTag
+
 object Stats {
-  def stdDev[T: Fractional](data: Iterable[T])(implicit T: Fractional[T]): Option[Double] = {
+  def stdDev[T](data: Iterable[T])(implicit T: Fractional[T]): Option[Double] = {
     mean(data).flatMap {avg =>
       val squareDiff = data.map { v =>
         val diff = T.minus(v, avg)
@@ -12,7 +14,7 @@ object Stats {
     }
   }
 
-  def mean[T: Fractional](data: Iterable[T])(implicit T: Fractional[T]): Option[T] = {
+  def mean[T](data: Iterable[T])(implicit T: Fractional[T]): Option[T] = {
     if (data.isEmpty) {
       None
     } else {
@@ -20,7 +22,7 @@ object Stats {
     }
   }
 
-  def median[T: Fractional](data: Iterable[T])(implicit T: Fractional[T], ordering: Ordering[T]): Option[T] = {
+  def median[T:ClassTag](data: Iterable[T])(implicit T: Fractional[T], ordering: Ordering[T]): Option[T] = {
     data.size match {
       case 0 | 1 =>
         data.headOption

@@ -2,13 +2,11 @@ package com.hwg.webgl
 
 import org.scalajs.dom
 import org.scalajs.dom.raw.{WebGLProgram, WebGLRenderingContext, WebGLShader}
-import org.scalajs.dom.svg.Matrix
-
-import scala.scalajs.js
-import scala.scalajs.js.typedarray.Float32Array
+import scryetek.vecmath.Mat4
 
 case class HwgWebGLProgram(gl: WebGLRenderingContext, draw: () => Unit) {
-  val GL = WebGLRenderingContext
+  import com.hwg.util.VecmathConverters._
+  private val GL = WebGLRenderingContext
 
   val program: WebGLProgram = initShaderProgram(Shaders.fShader, Shaders.vShader)
 
@@ -40,7 +38,7 @@ case class HwgWebGLProgram(gl: WebGLRenderingContext, draw: () => Unit) {
 
   gl.clear(GL.COLOR_BUFFER_BIT | GL.DEPTH_BUFFER_BIT)
 
-  dom.window.requestAnimationFrame(new Function1[Double, _] {
+  dom.window.requestAnimationFrame(new scala.scalajs.js.Function1[Double, _] {
     def apply(a: Double): Unit = {
       resizeCanvasToDisplaySize()
       draw()
@@ -48,30 +46,28 @@ case class HwgWebGLProgram(gl: WebGLRenderingContext, draw: () => Unit) {
     }
   })
 
-  def setMatrixUniforms(mvMatrix: Float32Array, x: Double, y: Double): Unit = {
-    gl.uniformMatrix4fv(moveMatrix, false, mvMatrix)
+  def setMatrixUniforms(mvMatrix: Mat4, x: Double, y: Double): Unit = {
+    gl.uniformMatrix4fv(moveMatrix, transpose = false, mvMatrix.toJsArray)
 
     this.setCamera(x, y)
 
-    val normalMatrix = new Float32Array(1)
-    //mat4.invert(normalMatrix, mvMatrix)
-    //mat4.transpose(normalMatrix, normalMatrix)
+    val normalMatrix = mvMatrix.copy()
+    normalMatrix.invert()
+    normalMatrix.transpose()
 
-    gl.uniformMatrix4fv(this.normalMatrix, false, normalMatrix)
+    gl.uniformMatrix4fv(this.normalMatrix, transpose = false, normalMatrix.toJsArray)
   }
 
   def setCamera(x: Double, y: Double, z: Double = 0): Unit = {
-    val pMatrix = mat4.create()
 
+    val cameraMatrix = Mat4().postTranslate(x.toFloat, y.toFloat, z.toFloat)
+    val viewMatrix = cameraMatrix.invert(Mat4())
 
-    val cameraMatrix = mat4.translate(mat4.create(), mat4.create(), [x, y, z])
-    val viewMatrix = mat4.invert(mat4.create(), cameraMatrix)
+    val pMatrix = Mat4.perspective((Math.PI / 4).toFloat, gl.canvas.width / gl.canvas.height, 0.1f, 100.0f)
 
-    mat4.perspective(pMatrix, Math.PI / 4, gl.canvas.width / gl.canvas.height, 0.1, 100.0)
+    val pvMatrix = pMatrix.postMultiply(viewMatrix)
 
-    val pvMatrix = viewMatrix == null ? pMatrix : mat4.multiply(mat4.create(), pMatrix, viewMatrix)
-
-    gl.uniformMatrix4fv(this.perspectiveMatrix, false, pvMatrix)
+    gl.uniformMatrix4fv(this.perspectiveMatrix, transpose = false, pvMatrix.toJsArray)
   }
 
   private def initShaderProgram(vsSource: String, fsSource: String): WebGLProgram = {
@@ -124,7 +120,8 @@ case class HwgWebGLProgram(gl: WebGLRenderingContext, draw: () => Unit) {
       gl.canvas.width = width.toInt
       gl.canvas.height = height.toInt
       true
+    } else {
+      false
     }
-    false
   }
 }

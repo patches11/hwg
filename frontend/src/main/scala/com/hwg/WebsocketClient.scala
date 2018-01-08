@@ -6,7 +6,6 @@ import org.scalajs.dom.raw.{Event, MessageEvent, WebSocket}
 import monix.reactive.subjects.PublishSubject
 import shared.Protocol.Message
 import upickle.default._
-import monix.execution.Scheduler.Implicits.global
 
 class WebsocketClient(val limit: Int = 1000) {
 
@@ -14,7 +13,7 @@ class WebsocketClient(val limit: Int = 1000) {
 
   private val websocket = new WebSocket(getWebsocketUri)
 
-  private val observable = new PublishSubject[Message]()
+  private val observable = PublishSubject[Message]()
 
   websocket.onopen = { (event: Event) =>
     active = true

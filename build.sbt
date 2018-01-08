@@ -10,7 +10,7 @@ lazy val root =
   project.in(file("."))
     .aggregate(frontend, backend)
 
-lazy val vecmath = ProjectRef(uri("git://github.com/patches11/vecmath.git"), "vecMathJS")
+lazy val vecmath = ProjectRef(uri("git://github.com/patches11/vecmath.git#master"), "vecMathJS")
 
 // Scala-Js frontend
 lazy val frontend =

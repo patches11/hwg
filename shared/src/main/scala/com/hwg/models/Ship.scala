@@ -3,11 +3,12 @@ package com.hwg.models
 import com.hwg.models.Manuever.Manuever
 
 import scala.collection.mutable.ArrayBuffer
+import Manuever._
 
-case class Ship(x: Double, y: Double, vX: Double, vY: Double, orientation: Double, accelerating: Boolean, manuevering: Manuever, firing: Boolean) {
-  import Manuever._
 
-  val projectiles: ArrayBuffer[Projectile] = ArrayBuffer
+case class Ship(x: Double, y: Double, vX: Double, vY: Double, orientation: Double, accelerating: Boolean = false, manuevering: Manuever = Nothing, firing: Boolean = false) {
+
+  val projectiles: ArrayBuffer[Projectile] = ArrayBuffer()
 
   def updateCommands(commandShip: Ship): Ship = {
     this.copy(

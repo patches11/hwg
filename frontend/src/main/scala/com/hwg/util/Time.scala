@@ -12,7 +12,7 @@ class Time(val client: WebsocketClient) {
 
   private case class TimeDelta(latency: Double, delta: Double)
 
-  val samples: ArrayBuffer[TimeDelta] = ArrayBuffer()
+  private val samples: ArrayBuffer[TimeDelta] = ArrayBuffer()
   var currentDelta: Option[Long] = None
   val obsLimit = 10
 
@@ -79,7 +79,7 @@ class Time(val client: WebsocketClient) {
 
   private def timeRequestLoop(): Unit = {
     if (client.alive) {
-      client.send(TimeMessage(new Date().getTime().toLong, null, null))
+      client.send(TimeMessage(new Date().getTime().toLong, 0, 0))
     }
 
     js.timers.setTimeout(nextReq) {
