@@ -1,50 +1,55 @@
 package com.hwg.webgl
 
 import org.scalajs.dom
-import org.scalajs.dom.raw.{WebGLProgram, WebGLRenderingContext, WebGLShader}
+import org.scalajs.dom.raw.{WebGLProgram, WebGLRenderingContext, WebGLShader, WebGLUniformLocation}
 import scryetek.vecmath.Mat4
 
 case class HwgWebGLProgram(gl: WebGLRenderingContext, draw: () => Unit) {
   import com.hwg.util.VecmathConverters._
-  private val GL = WebGLRenderingContext
+  import WebGLRenderingContext._
 
-  val program: WebGLProgram = initShaderProgram(Shaders.fShader, Shaders.vShader)
+  val program: WebGLProgram = initShaderProgram(Shaders.vShader, Shaders.fShader)
 
   gl.useProgram(program)
 
-  val positionLocation = gl.getAttribLocation(program, "aVertexPosition")
-  val texcoordLocation = gl.getAttribLocation(program, "aTextureCoord")
-  val normalLocation = gl.getAttribLocation(program, "aVertexNormal")
+  val positionLocation: Int = gl.getAttribLocation(program, "aVertexPosition")
+  gl.enableVertexAttribArray(positionLocation)
+  val texcoordLocation: Int = gl.getAttribLocation(program, "aTextureCoord")
+  gl.enableVertexAttribArray(texcoordLocation)
+  val normalLocation: Int = gl.getAttribLocation(program, "aVertexNormal")
+  gl.enableVertexAttribArray(normalLocation)
 
-  val perspectiveMatrix = gl.getUniformLocation(program, "uProjectionMatrix")
-  val moveMatrix = gl.getUniformLocation(program, "uModelViewMatrix")
-  val normalMatrix = gl.getUniformLocation(program, "uNormalMatrix")
+  val perspectiveMatrix: WebGLUniformLocation = gl.getUniformLocation(program, "uProjectionMatrix")
+  val moveMatrix: WebGLUniformLocation = gl.getUniformLocation(program, "uModelViewMatrix")
+  val normalMatrix: WebGLUniformLocation = gl.getUniformLocation(program, "uNormalMatrix")
 
-  val ambientColor = gl.getUniformLocation(program, "uAmbientColor")
-  val lightingDir = gl.getUniformLocation(program, "uLightingDirection")
-  val dirColor = gl.getUniformLocation(program, "uDirectionalColor")
+  val ambientColor: WebGLUniformLocation = gl.getUniformLocation(program, "uAmbientColor")
+  val lightingDir: WebGLUniformLocation = gl.getUniformLocation(program, "uLightingDirection")
+  val dirColor: WebGLUniformLocation = gl.getUniformLocation(program, "uDirectionalColor")
 
-  val samplerUniform = gl.getUniformLocation(program, "uSampler")
+  val samplerUniform: WebGLUniformLocation = gl.getUniformLocation(program, "uSampler")
 
   // Fill BG
   gl.clearColor(0.0, 0.0, 0.0, 1.0)
 
   // Enable Alpha
-  gl.blendFunc(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-  gl.enable(GL.BLEND)
+  gl.blendFunc(SRC_ALPHA, ONE_MINUS_SRC_ALPHA)
+  gl.enable(BLEND)
 
-  gl.enable(GL.DEPTH_TEST)           // Enable depth testing
-  gl.depthFunc(GL.LEQUAL)            // Near things obscure far things
+  gl.enable(DEPTH_TEST)           // Enable depth testing
+  gl.depthFunc(LEQUAL)            // Near things obscure far things
 
-  gl.clear(GL.COLOR_BUFFER_BIT | GL.DEPTH_BUFFER_BIT)
+  gl.clear(COLOR_BUFFER_BIT | DEPTH_BUFFER_BIT)
 
-  dom.window.requestAnimationFrame(new scala.scalajs.js.Function1[Double, _] {
-    def apply(a: Double): Unit = {
+  private val updater: scalajs.js.Function1[Double, _] = {
+    (_: Double) => {
       resizeCanvasToDisplaySize()
       draw()
-      dom.window.requestAnimationFrame(this)
+      dom.window.requestAnimationFrame(updater)
     }
-  })
+  }
+
+  dom.window.requestAnimationFrame(updater)
 
   def setMatrixUniforms(mvMatrix: Mat4, x: Double, y: Double): Unit = {
     gl.uniformMatrix4fv(moveMatrix, transpose = false, mvMatrix.toJsArray)
@@ -74,14 +79,10 @@ case class HwgWebGLProgram(gl: WebGLRenderingContext, draw: () => Unit) {
     val vertexShader = loadShader(WebGLRenderingContext.VERTEX_SHADER, vsSource)
     val fragmentShader = loadShader(WebGLRenderingContext.FRAGMENT_SHADER, fsSource)
 
-    // Create the shader program
-
     val shaderProgram = gl.createProgram()
     gl.attachShader(shaderProgram, vertexShader)
     gl.attachShader(shaderProgram, fragmentShader)
     gl.linkProgram(shaderProgram)
-
-    // If creating the shader program failed, alert
 
     if (!gl.getProgramParameter(shaderProgram, WebGLRenderingContext.LINK_STATUS).asInstanceOf[Boolean]) {
       println("Unable to initialize the shader program: " + gl.getProgramInfoLog(shaderProgram))
@@ -92,17 +93,11 @@ case class HwgWebGLProgram(gl: WebGLRenderingContext, draw: () => Unit) {
   }
 
   private def loadShader(shaderType: Int, source: String): WebGLShader = {
-    val shader = gl.createShader(WebGLRenderingContext.VERTEX_SHADER)
-
-    // Send the source to the shader object
+    val shader = gl.createShader(shaderType)
 
     gl.shaderSource(shader, source)
 
-    // Compile the shader program
-
     gl.compileShader(shader)
-
-    // See if it compiled successfully
 
     if (!gl.getShaderParameter(shader, WebGLRenderingContext.COMPILE_STATUS).asInstanceOf[Boolean]) {
       println("An error occurred compiling the shaders: " + gl.getShaderInfoLog(shader))

@@ -4,21 +4,20 @@ import com.hwg.util.MatrixStack
 import com.hwg.webgl.{HwgWebGLProgram, TextureInfo}
 import org.scalajs.dom.raw.WebGLRenderingContext
 
-import scala.collection.mutable.ListBuffer
+import scala.scalajs.js
 
 case class SphereModel(texture: TextureInfo, gl: WebGLRenderingContext) extends Model {
   import com.hwg.util.TypedArrayConverters._
-
-  private val GL = WebGLRenderingContext
+  import WebGLRenderingContext._
 
   val latitudeBands = 30
   val longitudeBands = 30
   val radius = 2
 
-  val vertexPositionData: ListBuffer[Double] = ListBuffer()
-  val normalData: ListBuffer[Double] = ListBuffer()
-  val textureCoordData: ListBuffer[Double] = ListBuffer()
-  val indexData: ListBuffer[Int] = ListBuffer()
+  val vertexPositionData: js.Array[Double] = js.Array()
+  val normalData: js.Array[Double] = js.Array()
+  val textureCoordData: js.Array[Double] = js.Array()
+  val indexData: js.Array[Int] = js.Array()
 
   (0 to latitudeBands).foreach { latNumber =>
     val theta = latNumber * Math.PI / this.latitudeBands
@@ -33,14 +32,14 @@ case class SphereModel(texture: TextureInfo, gl: WebGLRenderingContext) extends 
       val z = sinPhi * sinTheta
       val u = 1 - (longNumber / this.longitudeBands)
       val v = 1 - (latNumber / this.latitudeBands)
-      normalData.append(x)
-      normalData.append(y)
-      normalData.append(z)
-      textureCoordData.append(u)
-      textureCoordData.append(v)
-      vertexPositionData.append(this.radius * x)
-      vertexPositionData.append(this.radius * y)
-      vertexPositionData.append(this.radius * z)
+      normalData.push(x)
+      normalData.push(y)
+      normalData.push(z)
+      textureCoordData.push(u)
+      textureCoordData.push(v)
+      vertexPositionData.push(this.radius * x)
+      vertexPositionData.push(this.radius * y)
+      vertexPositionData.push(this.radius * z)
     }
   }
 
@@ -48,30 +47,30 @@ case class SphereModel(texture: TextureInfo, gl: WebGLRenderingContext) extends 
     (0 to longitudeBands).foreach { longNumber =>
       val first = (latNumber * (this.longitudeBands + 1)) + longNumber
       val second = first + this.longitudeBands + 1
-      indexData.append(first)
-      indexData.append(second)
-      indexData.append(first + 1)
-      indexData.append(second)
-      indexData.append(second + 1)
-      indexData.append(first + 1)
+      indexData.push(first)
+      indexData.push(second)
+      indexData.push(first + 1)
+      indexData.push(second)
+      indexData.push(second + 1)
+      indexData.push(first + 1)
     }
   }
 
   private val moonVertexNormalB = gl.createBuffer()
-  gl.bindBuffer(GL.ARRAY_BUFFER, moonVertexNormalB)
-  gl.bufferData(GL.ARRAY_BUFFER, Float32Array(normalData.toList), GL.STATIC_DRAW)
+  gl.bindBuffer(ARRAY_BUFFER, moonVertexNormalB)
+  gl.bufferData(ARRAY_BUFFER, Float32Array(normalData), STATIC_DRAW)
 
   private val moonVertexTextureCoordB = gl.createBuffer()
-  gl.bindBuffer(GL.ARRAY_BUFFER, moonVertexTextureCoordB)
-  gl.bufferData(GL.ARRAY_BUFFER, Float32Array(textureCoordData.toList), GL.STATIC_DRAW)
+  gl.bindBuffer(ARRAY_BUFFER, moonVertexTextureCoordB)
+  gl.bufferData(ARRAY_BUFFER, Float32Array(textureCoordData), STATIC_DRAW)
 
   private val moonVertexPositionB = gl.createBuffer()
-  gl.bindBuffer(GL.ARRAY_BUFFER, moonVertexPositionB)
-  gl.bufferData(GL.ARRAY_BUFFER, Float32Array(vertexPositionData.toList), GL.STATIC_DRAW)
+  gl.bindBuffer(ARRAY_BUFFER, moonVertexPositionB)
+  gl.bufferData(ARRAY_BUFFER, Float32Array(vertexPositionData), STATIC_DRAW)
 
   private val moonVertexIndexB = gl.createBuffer()
-  gl.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, moonVertexIndexB)
-  gl.bufferData(GL.ELEMENT_ARRAY_BUFFER, Uint16Array(indexData.toList), GL.STATIC_DRAW)
+  gl.bindBuffer(ELEMENT_ARRAY_BUFFER, moonVertexIndexB)
+  gl.bufferData(ELEMENT_ARRAY_BUFFER, Uint16Array(indexData), STATIC_DRAW)
 
 
   val moonVertexNormalBuffer: BufferWrapper = BufferWrapper(moonVertexNormalB, 3, normalData.length / 3)
@@ -80,21 +79,21 @@ case class SphereModel(texture: TextureInfo, gl: WebGLRenderingContext) extends 
   val moonVertexIndexBuffer: BufferWrapper = BufferWrapper(moonVertexIndexB, 1, normalData.length)
 
   def draw(program: HwgWebGLProgram, matrixStack: MatrixStack, x: Double, y: Double): Unit = {
-    gl.activeTexture(GL.TEXTURE0)
-    gl.bindTexture(GL.TEXTURE_2D, this.texture.texture)
+    gl.activeTexture(TEXTURE0)
+    gl.bindTexture(TEXTURE_2D, this.texture.texture)
     gl.uniform1i(program.samplerUniform, 0)
 
-    gl.bindBuffer(GL.ARRAY_BUFFER, this.moonVertexPositionBuffer.buffer)
-    gl.vertexAttribPointer(program.positionLocation, this.moonVertexPositionBuffer.itemSize, GL.FLOAT, normalized = false, 0, 0)
+    gl.bindBuffer(ARRAY_BUFFER, this.moonVertexPositionBuffer.buffer)
+    gl.vertexAttribPointer(program.positionLocation, this.moonVertexPositionBuffer.itemSize, FLOAT, normalized = false, 0, 0)
 
-    gl.bindBuffer(GL.ARRAY_BUFFER, this.moonVertexTextureCoordBuffer.buffer)
-    gl.vertexAttribPointer(program.texcoordLocation, this.moonVertexTextureCoordBuffer.itemSize, GL.FLOAT, normalized = false, 0, 0)
+    gl.bindBuffer(ARRAY_BUFFER, this.moonVertexTextureCoordBuffer.buffer)
+    gl.vertexAttribPointer(program.texcoordLocation, this.moonVertexTextureCoordBuffer.itemSize, FLOAT, normalized = false, 0, 0)
 
-    gl.bindBuffer(GL.ARRAY_BUFFER, this.moonVertexNormalBuffer.buffer)
-    gl.vertexAttribPointer(program.normalLocation, this.moonVertexNormalBuffer.itemSize, GL.FLOAT, normalized = false, 0, 0)
+    gl.bindBuffer(ARRAY_BUFFER, this.moonVertexNormalBuffer.buffer)
+    gl.vertexAttribPointer(program.normalLocation, this.moonVertexNormalBuffer.itemSize, FLOAT, normalized = false, 0, 0)
 
-    gl.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, this.moonVertexIndexBuffer.buffer)
+    gl.bindBuffer(ELEMENT_ARRAY_BUFFER, this.moonVertexIndexBuffer.buffer)
     program.setMatrixUniforms(matrixStack.getCurrentMatrix, x, y)
-    gl.drawElements(GL.TRIANGLES, this.moonVertexIndexBuffer.numItems, GL.UNSIGNED_SHORT, 0)
+    gl.drawElements(TRIANGLES, this.moonVertexIndexBuffer.numItems, UNSIGNED_SHORT, 0)
   }
 }

@@ -2,14 +2,14 @@ package com.hwg.util
 
 import scryetek.vecmath.{Mat4, Vec3}
 
-import scala.collection.mutable.ListBuffer
+import scala.scalajs.js
 
 class MatrixStack {
-  val stack: ListBuffer[Mat4] = ListBuffer()
+  val stack: js.Array[Mat4] = js.Array(new Mat4)
 
-  private def pop: Mat4 = stack.remove(0)
+  private def pop: Mat4 = stack.pop()
 
-  private def push(m: Mat4) = stack.prepend(m)
+  private def push(m: Mat4) = stack.push(m)
 
   def restore(): Unit = {
     pop
@@ -26,12 +26,12 @@ class MatrixStack {
 
   // Gets a copy of the current matrix (top of the stack)
   def getCurrentMatrix: Mat4 = {
-    stack.head
+    stack.last
   }
 
   // Lets us set the current matrix
   def setCurrentMatrix(m: Mat4): Mat4 = {
-    stack(0) = m
+    stack(stack.length - 1) = m
     m
   }
 

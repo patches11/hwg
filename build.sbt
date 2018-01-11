@@ -20,6 +20,7 @@ lazy val frontend =
     .settings(
       persistLauncher in Compile := true,
       persistLauncher in Test := false,
+      relativeSourceMaps in Compile := true,
       testFrameworks += new TestFramework("utest.runner.Framework"),
       libraryDependencies ++= Seq(
         "org.scala-js" %%% "scalajs-dom" % scalaJsDomV,

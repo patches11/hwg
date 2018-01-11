@@ -1,5 +1,7 @@
 package com.hwg.background
 
+import java.util.Date
+
 import com.hwg.util.{MathExt, Point, RandomQueue}
 
 import scala.collection.mutable.ArrayBuffer
@@ -14,6 +16,8 @@ object StarField {
     val data = new Array[Short](width * height * 4)
     val brightness = 50
 
+    val s = new Date().getTime
+
     generate(width, height, minRadius, maxRadius, minDistFunc, newPointsCount, random, maxIterations).foreach((point) => {
       val index = (Math.floor(point.x) + Math.floor(point.y) * width).toInt
       val c = Math.round(255 * Math.log(1 - random.nextFloat()) * -brightness).toShort
@@ -23,6 +27,8 @@ object StarField {
       data(index * 4 + 2) = 255
       data(index * 4 + 3) = c
     })
+
+    println(s"StarField.generate took: ${new Date().getTime - s}")
 
     data
   }
@@ -123,7 +129,7 @@ object StarField {
     pointSquare.map((point) => {
       Point(point.x + gridPoint.x, point.y + gridPoint.y)
     }).filter((point) => {
-      inSquare(point, width, height)
+      inSquare(point, (width / cellSize).toInt, (height / cellSize).toInt)
     }).flatMap((gridPoint) => {
       grid((gridPoint.x + gridPoint.y * Math.floor(width / cellSize)).toInt)
     })

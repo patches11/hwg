@@ -1,7 +1,7 @@
 package com.hwg.webgl
 
 import org.scalajs.dom
-import org.scalajs.dom.raw.{HTMLImageElement, WebGLRenderingContext, WebGLTexture}
+import org.scalajs.dom.raw.{Event, HTMLImageElement, WebGLRenderingContext, WebGLTexture}
 
 import scala.scalajs.js.typedarray.Uint8Array
 
@@ -42,7 +42,7 @@ object TextureInfo {
 
     val img = dom.document.createElement("img").asInstanceOf[HTMLImageElement]
 
-    img.addEventListener("load", (_: Int) => {
+    img.addEventListener("load", (_: Event) => {
       textureInfo.width = img.width
       textureInfo.height = img.height
 

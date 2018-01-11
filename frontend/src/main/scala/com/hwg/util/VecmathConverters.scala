@@ -11,9 +11,7 @@ object VecmathConverters {
   }
 
   implicit class Mat4Converter(mat4: Mat4) {
-    def toJsArray: js.Array[Double] = js.Array[Double](mat4.toArray: _*)
-
-    def toArray: Array[Double] = Array(
+    def toJsArray: js.Array[Double] = js.Array(
       mat4.m00, mat4.m01, mat4.m02, mat4.m03,
       mat4.m10, mat4.m11, mat4.m12, mat4.m13,
       mat4.m20, mat4.m21, mat4.m22, mat4.m23,

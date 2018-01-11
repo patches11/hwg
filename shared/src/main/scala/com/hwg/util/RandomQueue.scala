@@ -13,7 +13,7 @@ class RandomQueue[T](val random: Random) {
 
   // TODO: Maybe return option T
   def pop(): T = {
-    base.remove(random.nextInt())
+    base.remove(random.nextInt(base.size))
   }
 
   def isEmpty: Boolean = {
