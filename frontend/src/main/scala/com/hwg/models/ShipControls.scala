@@ -8,9 +8,6 @@ object ShipControls {
 
   implicit class ShipControl(ship: Ship) {
     def control(obs: Observable[KeyboardEvent]): Unit = {
-      obs.foreach { ev =>
-        println(s"EV ${ev.key} ${ev.`type`}")
-      }
       obs.foreach {
         case ev if ev.key == "ArrowUp" =>
           if (ev.`type` == "keyup") {
@@ -42,6 +39,7 @@ object ShipControls {
           } else {
             ship.firing = true
           }
+        case _ => // Observables have a nice property of silently swallowing errors so you have to do this
       }
     }
   }

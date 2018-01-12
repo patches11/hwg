@@ -58,7 +58,7 @@ case class HwgWebGLProgram(gl: WebGLRenderingContext, draw: () => Unit) {
 
     this.setCamera(x, y)
 
-    val normalMatrix = mvMatrix.copy()
+    val normalMatrix = mvMatrix.dup
     normalMatrix.invert()
     normalMatrix.transpose()
 
@@ -67,7 +67,7 @@ case class HwgWebGLProgram(gl: WebGLRenderingContext, draw: () => Unit) {
 
   def setCamera(x: Double, y: Double, z: Double = 0): Unit = {
     val cameraMatrix = Mat4().postTranslate(x.toFloat, y.toFloat, z.toFloat)
-    val viewMatrix = cameraMatrix.copy()
+    val viewMatrix = cameraMatrix.dup
     viewMatrix.invert()
 
     val pMatrix = Mat4.perspective((Math.PI / 4).toFloat, gl.canvas.width.toFloat / gl.canvas.height, 0.1f, 100.0f)

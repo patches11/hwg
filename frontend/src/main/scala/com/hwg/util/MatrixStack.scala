@@ -6,6 +6,7 @@ import scala.scalajs.js
 
 class MatrixStack {
   val stack: js.Array[Mat4] = js.Array(new Mat4)
+  import VecmathConverters._
 
   private def pop: Mat4 = stack.pop()
 
@@ -21,7 +22,7 @@ class MatrixStack {
 
   // Pushes a copy of the current matrix on the stack
   def save(): Unit = {
-    push((new Mat4).set(this.getCurrentMatrix))
+    push(this.getCurrentMatrix.dup)
   }
 
   // Gets a copy of the current matrix (top of the stack)

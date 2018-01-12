@@ -24,6 +24,10 @@ object VecmathConverters {
       mat4.m02, mat4.m12, mat4.m22, mat4.m32,
       mat4.m03, mat4.m13, mat4.m23, mat4.m33
     )
+
+    def dup: Mat4 = {
+      new Mat4().set(mat4)
+    }
   }
 
 }
