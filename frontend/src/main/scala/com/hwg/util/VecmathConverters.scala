@@ -17,6 +17,13 @@ object VecmathConverters {
       mat4.m20, mat4.m21, mat4.m22, mat4.m23,
       mat4.m30, mat4.m31, mat4.m32, mat4.m33
     )
+
+    def toJsArrayT: js.Array[Double] = js.Array(
+      mat4.m00, mat4.m10, mat4.m20, mat4.m30,
+      mat4.m01, mat4.m11, mat4.m21, mat4.m31,
+      mat4.m02, mat4.m12, mat4.m22, mat4.m32,
+      mat4.m03, mat4.m13, mat4.m23, mat4.m33
+    )
   }
 
 }

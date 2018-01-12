@@ -1,5 +1,12 @@
-val akkaHttpV = "10.0.11"
+name := "HWG"
+
+organization := "com.hwg"
+
+version := "0.1"
+
 val scalaV = "2.12.4"
+
+val akkaHttpV = "10.0.11"
 val akkaV = "2.5.8"
 val upickleV = "0.4.4"
 val utestV = "0.4.5"
@@ -10,7 +17,7 @@ lazy val root =
   project.in(file("."))
     .aggregate(frontend, backend)
 
-lazy val vecmath = ProjectRef(uri("git://github.com/patches11/vecmath.git#master"), "vecMathJS")
+lazy val vecmath = ProjectRef(uri("git://github.com/patches11/vecmath.git#0010d1f062d8295fd78d1e98091cba2c85265196"), "vecMathJS")
 
 // Scala-Js frontend
 lazy val frontend =

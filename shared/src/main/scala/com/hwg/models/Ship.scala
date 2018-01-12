@@ -6,30 +6,27 @@ import scala.collection.mutable.ArrayBuffer
 import Manuever._
 
 
-case class Ship(x: Double, y: Double, vX: Double, vY: Double, orientation: Double, accelerating: Boolean = false, manuevering: Manuever = Nothing, firing: Boolean = false) {
+class Ship(var x: Double, var y: Double, var vX: Double, var vY: Double, var orientation: Double, var accelerating: Boolean = false, var manuevering: Manuever = Nothing, var firing: Boolean = false) {
 
   val projectiles: ArrayBuffer[Projectile] = ArrayBuffer()
 
-  def updateCommands(commandShip: Ship): Ship = {
-    this.copy(
-      accelerating = commandShip.accelerating,
-      manuevering = commandShip.manuevering,
-      firing = commandShip.firing
-    )
+  def updateCommands(commandShip: Ship): Unit = {
+    accelerating = commandShip.accelerating
+    manuevering = commandShip.manuevering
+    firing = commandShip.firing
   }
 
-  def tick(deltaTime: Double): Ship = {
-    this.copy(
-      x = this.x + this.vX * deltaTime / 100,
-      y = this.y + this.vY * deltaTime / 100,
-      vX = if (this.accelerating) this.vX - 5 * Math.sin(this.orientation) * deltaTime / 100 else this.vX,
-      vY = if (this.accelerating) this.vY + 5 * Math.cos(this.orientation) * deltaTime / 100 else this.vY,
-      orientation = this.manuevering match {
-        case CW => this.orientation - 0.1
-        case CCW => this.orientation - 0.1
-        case Reverse => this.orientation - 0.1
-      }
-    )
+  def tick(deltaTime: Double): Unit = {
+    x = x + vX * deltaTime / 100
+    y = y + vY * deltaTime / 100
+    vX = if (accelerating) vX - 5 * Math.sin(orientation) * deltaTime / 100 else vX
+    vY = if (accelerating) vY + 5 * Math.cos(orientation) * deltaTime / 100 else vY
+    orientation = this.manuevering match {
+      case CW => orientation - 0.1
+      case CCW => orientation + 0.1
+      case Reverse => orientation + 0.1
+      case _ => orientation
+    }
   }
 
 }

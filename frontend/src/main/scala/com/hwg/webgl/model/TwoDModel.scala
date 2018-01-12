@@ -59,7 +59,7 @@ case class TwoDModel(texture: TextureInfo, gl: WebGLRenderingContext, width: Int
     //let matrix = mat4.ortho(mat4.create(), 0, gl.canvas.width, gl.canvas.height, 0, -1, 1);
     val matrix = Mat4()
     matrix.postMultiply(matrixStack.getCurrentMatrix)
-    matrix.postScale(width, height, 1)
+    matrix.postScale(width.toFloat / 400, height.toFloat / 400, 1)
 
     program.setMatrixUniforms(matrix, x, y)
 

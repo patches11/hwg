@@ -8,17 +8,18 @@ import com.hwg.webgl.model.{Model, SphereModel, TwoDModel}
 import org.scalajs.dom.raw.WebGLRenderingContext
 import scryetek.vecmath.Vec3
 
+import scala.scalajs.js
 import scala.util.Random
 
 case class SolarSystem(seed: Long, gl: WebGLRenderingContext) {
   import com.hwg.util.VecmathConverters._
   import com.hwg.util.TypedArrayConverters._
 
-  val ambientColor = Float32Array(Array(0.1f, 0.5f, 0.7f))
+  val ambientColor = Float32Array(js.Array(0.1f, 0.5f, 0.7f))
 
-  val lightDirection: (Float, Float, Float) = (1, 1, -1)
+  val lightDirection: Vec3 = Vec3(1, 1, -1)
 
-  val directionalLightColor = Float32Array(Array(0.5f, 0.5f, 0f))
+  val directionalLightColor = Float32Array(js.Array(0.5f, 0.5f, 0f))
 
   // BG Config
   val backgroundSize: Int = 2048
@@ -38,7 +39,7 @@ case class SolarSystem(seed: Long, gl: WebGLRenderingContext) {
 
   val moonModel = SphereModel(moon, gl)
 
-  val planets: Array[Planet]= Array(Planet(moonModel, 0, 0))
+  val planets: js.Array[Planet]= js.Array(Planet(moonModel, 0, 0))
   val starField: Model = TwoDModel(starFieldTex, gl, 25*this.backgroundSize, 25*this.backgroundSize)
 
   def draw(matrixStack: MatrixStack, thisShip: Ship, time: Long, program: HwgWebGLProgram): Unit = {
@@ -48,7 +49,7 @@ case class SolarSystem(seed: Long, gl: WebGLRenderingContext) {
       this.ambientColor
     )
 
-    val adjustedLD = Vec3(lightDirection._1, lightDirection._2, lightDirection._3)
+    val adjustedLD = (new Vec3).set(lightDirection)
     adjustedLD.normalize()
     adjustedLD.scale(-1)
 
@@ -59,16 +60,16 @@ case class SolarSystem(seed: Long, gl: WebGLRenderingContext) {
       this.directionalLightColor
     )
 
-    //matrixStack.save()
-    //matrixStack.translate(thisShip.x / 100, thisShip.y / 100, -100)
-    //starField.draw(program, matrixStack, thisShip.x / 100, thisShip.y / 100)
-    //matrixStack.restore()
+    matrixStack.save()
+    matrixStack.translate(thisShip.x / 100, thisShip.y / 100, -100)
+    starField.draw(program, matrixStack, thisShip.x / 100, thisShip.y / 100)
+    matrixStack.restore()
 
     planets.foreach { planet =>
       matrixStack.save()
       matrixStack.translate(planet.x, planet.y, -16)
-      matrixStack.rotateZ(Math.sin(time / 1000000 + Math.PI) * Math.PI)
-      matrixStack.rotateX(Math.cos(time / 1000000 + Math.PI) * Math.PI)
+      matrixStack.rotateZ(Math.sin(time.toDouble / 100000 + Math.PI) * Math.PI)
+      matrixStack.rotateX(Math.cos(time.toDouble / 100000 + Math.PI) * Math.PI)
       planet.model.draw(program, matrixStack, thisShip.x / 100, thisShip.y / 100)
       matrixStack.restore()
     }

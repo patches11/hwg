@@ -21,7 +21,7 @@ class MatrixStack {
 
   // Pushes a copy of the current matrix on the stack
   def save(): Unit = {
-    push(this.getCurrentMatrix)
+    push((new Mat4).set(this.getCurrentMatrix))
   }
 
   // Gets a copy of the current matrix (top of the stack)

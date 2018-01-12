@@ -6,13 +6,12 @@ import org.scalajs.dom.raw.WebGLRenderingContext
 
 import scala.scalajs.js
 
-case class SphereModel(texture: TextureInfo, gl: WebGLRenderingContext) extends Model {
+case class SphereModel(texture: TextureInfo, gl: WebGLRenderingContext, radius: Double = 2) extends Model {
   import com.hwg.util.TypedArrayConverters._
   import WebGLRenderingContext._
 
   val latitudeBands = 30
   val longitudeBands = 30
-  val radius = 2
 
   val vertexPositionData: js.Array[Double] = js.Array()
   val normalData: js.Array[Double] = js.Array()
@@ -30,21 +29,21 @@ case class SphereModel(texture: TextureInfo, gl: WebGLRenderingContext) extends 
       val x = cosPhi * sinTheta
       val y = cosTheta
       val z = sinPhi * sinTheta
-      val u = 1 - (longNumber / this.longitudeBands)
-      val v = 1 - (latNumber / this.latitudeBands)
+      val u = 1 - (longNumber.toDouble / this.longitudeBands)
+      val v = 1 - (latNumber.toDouble / this.latitudeBands)
       normalData.push(x)
       normalData.push(y)
       normalData.push(z)
       textureCoordData.push(u)
       textureCoordData.push(v)
-      vertexPositionData.push(this.radius * x)
-      vertexPositionData.push(this.radius * y)
-      vertexPositionData.push(this.radius * z)
+      vertexPositionData.push(radius * x)
+      vertexPositionData.push(radius * y)
+      vertexPositionData.push(radius * z)
     }
   }
 
-  (0 to latitudeBands).foreach { latNumber =>
-    (0 to longitudeBands).foreach { longNumber =>
+  (0 until latitudeBands).foreach { latNumber =>
+    (0 until longitudeBands).foreach { longNumber =>
       val first = (latNumber * (this.longitudeBands + 1)) + longNumber
       val second = first + this.longitudeBands + 1
       indexData.push(first)
@@ -74,9 +73,9 @@ case class SphereModel(texture: TextureInfo, gl: WebGLRenderingContext) extends 
 
 
   val moonVertexNormalBuffer: BufferWrapper = BufferWrapper(moonVertexNormalB, 3, normalData.length / 3)
-  val moonVertexTextureCoordBuffer: BufferWrapper = BufferWrapper(moonVertexTextureCoordB, 2, normalData.length / 2)
-  val moonVertexPositionBuffer: BufferWrapper = BufferWrapper(moonVertexPositionB, 3, normalData.length / 3)
-  val moonVertexIndexBuffer: BufferWrapper = BufferWrapper(moonVertexIndexB, 1, normalData.length)
+  val moonVertexTextureCoordBuffer: BufferWrapper = BufferWrapper(moonVertexTextureCoordB, 2, textureCoordData.length / 2)
+  val moonVertexPositionBuffer: BufferWrapper = BufferWrapper(moonVertexPositionB, 3, vertexPositionData.length / 3)
+  val moonVertexIndexBuffer: BufferWrapper = BufferWrapper(moonVertexIndexB, 1, indexData.length)
 
   def draw(program: HwgWebGLProgram, matrixStack: MatrixStack, x: Double, y: Double): Unit = {
     gl.activeTexture(TEXTURE0)
