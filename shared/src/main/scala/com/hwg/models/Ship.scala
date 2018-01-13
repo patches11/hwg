@@ -1,12 +1,12 @@
 package com.hwg.models
 
-import com.hwg.models.Manuever.Manuever
+import com.hwg.models.Manuever._
 
 import scala.collection.mutable.ArrayBuffer
 import Manuever._
 
 
-class Ship(var x: Double, var y: Double, var vX: Double, var vY: Double, var orientation: Double, var accelerating: Boolean = false, var manuevering: Manuever = Nothing, var firing: Boolean = false) {
+case class Ship(var x: Double, var y: Double, var vX: Double, var vY: Double, var orientation: Double, var accelerating: Boolean = false, var manuevering: Manuever = Nothing, var firing: Boolean = false) {
 
   val projectiles: ArrayBuffer[Projectile] = ArrayBuffer()
 

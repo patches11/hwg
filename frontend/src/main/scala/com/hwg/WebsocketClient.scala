@@ -1,19 +1,26 @@
 package com.hwg
 
+import monix.execution.{Ack, Cancelable}
+import monix.execution.cancelables.SingleAssignmentCancelable
 import monix.reactive.Observable
+import monix.reactive.OverflowStrategy.DropOld
 import org.scalajs.dom
 import org.scalajs.dom.raw.{Event, MessageEvent, WebSocket}
 import monix.reactive.subjects.PublishSubject
 import shared.Protocol.Message
 import upickle.default._
 
+import scala.scalajs.js
+
 class WebsocketClient(val limit: Int = 1000) {
+
+  import monix.execution.Scheduler.Implicits.global
 
   private var active = false
 
   private val websocket = new WebSocket(getWebsocketUri)
 
-  private val observable = PublishSubject[Message]()
+  PublishSubject[Message]()
 
   websocket.onopen = { (event: Event) =>
     active = true
@@ -27,10 +34,19 @@ class WebsocketClient(val limit: Int = 1000) {
     active = false
   }
 
-  websocket.onmessage = { (event: MessageEvent) =>
-    val wsMsg = read[Message](event.data.toString)
+  private val observable: Observable[Message] = Observable.create(DropOld(limit)) { subscriber =>
+    val c = SingleAssignmentCancelable()
+    // Forced conversion, otherwise canceling will not work!
+    val f: js.Function1[MessageEvent, Ack] = (e: MessageEvent) => {
+      val wsMsg = read[Message](e.data.toString)
 
-    observable.onNext(wsMsg)
+      subscriber.onNext(wsMsg).syncOnStopOrFailure((_) => c.cancel())
+    }
+
+    websocket.addEventListener("message", f)
+    c := Cancelable(() => {
+      websocket.removeEventListener("message", f)
+    })
   }
 
   def getObservable: Observable[Message] = observable
@@ -46,4 +62,5 @@ class WebsocketClient(val limit: Int = 1000) {
 
     s"$wsProtocol://${dom.document.location.host}/websocket"
   }
+
 }

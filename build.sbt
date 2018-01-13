@@ -58,10 +58,20 @@ lazy val backend =
     )
     .dependsOn(sharedJvm)
 
+val enumeratumVersion = "1.5.11"
+val enumeratumUPickleVersion = "1.5.11"
+
 lazy val shared =
   (crossProject.crossType(CrossType.Pure) in file ("shared"))
     .settings(
-      scalaVersion := scalaV
+      scalaVersion := scalaV,
+      autoCompilerPlugins := true,
+      libraryDependencies ++= Seq(
+        compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
+        "com.thoughtworks.enableIf" %% "enableif" % "latest.release",
+        "com.beachape" %% "enumeratum-upickle" % enumeratumUPickleVersion,
+        "com.beachape" %% "enumeratum" % enumeratumVersion
+      )
     )
 
 

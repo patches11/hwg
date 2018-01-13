@@ -41,13 +41,16 @@ object StarField {
     //Create the grid
     val cellSize = maxRadius / Math.sqrt(2)
 
-    val grid: Grid = Array.fill((Math.ceil(width / cellSize) * Math.ceil(height / cellSize)).toInt)(ArrayBuffer())
+    val cells = (Math.ceil(width / cellSize) * Math.ceil(height / cellSize)).toInt
+
+    val grid: Grid = Array.fill(cells)(ArrayBuffer())
 
     //RandomQueue works like a queue, except that it
     //pops a random element from the queue instead of
     //the element at the head of the queue
     val processList: RandomQueue[Point] = new RandomQueue(random)
     val samplePoints: ArrayBuffer[Point] = ArrayBuffer()
+    samplePoints.sizeHint(cells)
 
     //generate the first point randomly
     //and updates
@@ -70,13 +73,12 @@ object StarField {
         val newPoint = generateRandomPointAround(point, minRadius, maxRadius, minDistFunc, random)
         //check that the point is in the image region
         //and no points exists in the point's neighbourhood
-        if (inSquare(newPoint, width, height) && !inNeighbourhood(grid, newPoint, minRadius, maxRadius, minDistFunc, cellSize, width, height, pointSquare)) {
+        if (!inNeighbourhood(grid, newPoint, minRadius, maxRadius, minDistFunc, cellSize, width, height, pointSquare) && inSquare(newPoint, width, height)) {
           //update containers
           processList.push(newPoint)
           samplePoints.append(newPoint)
           val gridSquare = grid(imageToGrid(newPoint, cellSize, width))
           gridSquare.append(newPoint)
-          grid(imageToGrid(newPoint, cellSize, width)) = gridSquare
         }
       }
     }

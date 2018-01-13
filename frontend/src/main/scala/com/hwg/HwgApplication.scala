@@ -8,6 +8,7 @@ import com.hwg.webgl.{HwgWebGLProgram, TextureLoader}
 import monix.reactive.Observable
 import org.scalajs.dom.KeyboardEvent
 import org.scalajs.dom.raw.WebGLRenderingContext
+import shared.Protocol.{State, ThisShip}
 
 import scala.scalajs.js
 
@@ -31,6 +32,8 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
 
   var lastTick: Long = time.now
   var tickInterval: Long = 25
+
+  var lastReceivedState: Option[State] = None
 
   js.timers.setTimeout(tickInterval)(tick)
 
@@ -67,17 +70,16 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
   val program = HwgWebGLProgram(gl, draw)
 
   def tick(): Unit = {
-    /*this.lastReceivedTick.forEach((tick) => {
-      this.lastTick = tick.tickId
+    lastReceivedState.foreach { state =>
+      lastTick = state.id
       //this.tickInterval = tick.tickInterval
-      for(let id in tick.ships) {
-      const shipInfo = tick.ships[id]
-      const ship = this.ships[id] || new Ship()
-      ship.updateFrom(shipInfo)
-      this.ships[id] = ship
+      state.ships.foreach { case (id, shipInfo) =>
+        //val ship = this.ships[id] || new Ship()
+        //ship.updateFrom(shipInfo)
+        //this.ships[id] = ship
+      }
+      lastReceivedState = None
     }
-      this.lastReceivedTick = None
-    })*/
 
     val thisTime = time.now
     val deltaTime = thisTime - lastTick
@@ -88,12 +90,9 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
       ship.projectiles.foreach((p) => p.tick(deltaTime))
     }
 
-    /*if (this.websocket.open()) {
-      this.websocket.send({
-      kind: "Ship",
-      data: this.thisShip
-    })
-    }*/
+    if (client.alive) {
+      client.send(ThisShip(thisShip))
+    }
 
     val thisTickAhead = Math.floor((time.now - lastTick) / tickInterval) // Number of ticks ahead of last we are
     val target = thisTickAhead + 1 * tickInterval + lastTick

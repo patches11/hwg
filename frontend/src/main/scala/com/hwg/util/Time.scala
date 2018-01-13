@@ -43,8 +43,8 @@ class Time(val client: WebsocketClient) {
   }
 
   def updateDelta(): Unit = {
-    while (this.samples.length >= this.obsLimit) {
-      this.samples.remove(1)
+    if (samples.length > obsLimit) {
+      this.samples.remove(samples.length - obsLimit)
     }
 
     val deltas = this.samples.map(_.delta)
@@ -70,7 +70,7 @@ class Time(val client: WebsocketClient) {
     samples.length match {
       case 0 =>
         10
-      case n if n < 10 =>
+      case n if n < obsLimit =>
         (Math.random() * 1000 + 1000).toLong
       case _ =>
         (Math.random() * 5000 + 60000).toLong

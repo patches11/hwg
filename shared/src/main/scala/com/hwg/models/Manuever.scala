@@ -1,6 +1,18 @@
 package com.hwg.models
 
-object Manuever extends Enumeration {
-  type Manuever = Value
-  val Nothing, CW, CCW, Reverse = Value
+import enumeratum.values._
+
+sealed abstract class Manuever(val value: Long) extends LongEnumEntry
+
+case object Manuever
+  extends LongEnum[Manuever]
+    with LongUPickleEnum[Manuever] {
+
+  val values = findValues
+
+  case object Nothing  extends Manuever(value = 1L)
+  case object CW extends Manuever(value = 2L)
+  case object CCW extends Manuever(value = 3L)
+  case object Reverse extends Manuever(value = 4L)
+
 }
