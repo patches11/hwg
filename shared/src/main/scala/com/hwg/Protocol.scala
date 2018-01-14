@@ -1,4 +1,4 @@
-package shared
+package com.hwg
 
 import com.hwg.models.Ship
 
@@ -16,4 +16,6 @@ object Protocol {
                   tickInterval: Long,
                   ships: Map[Int, Ship]
                   ) extends Message
+
+  case class Initialized(id: Int) extends Message
 }

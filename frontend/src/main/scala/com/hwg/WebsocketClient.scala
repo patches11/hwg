@@ -7,10 +7,11 @@ import monix.reactive.OverflowStrategy.DropOld
 import org.scalajs.dom
 import org.scalajs.dom.raw.{Event, MessageEvent, WebSocket}
 import monix.reactive.subjects.PublishSubject
-import shared.Protocol.Message
+import Protocol.{Message, TimeMessage}
 import upickle.default._
 
 import scala.scalajs.js
+import scala.scalajs.js.Date
 
 class WebsocketClient(val limit: Int = 1000) {
 
@@ -34,11 +35,17 @@ class WebsocketClient(val limit: Int = 1000) {
     active = false
   }
 
-  private val observable: Observable[Message] = Observable.create(DropOld(limit)) { subscriber =>
+
+  private val o: Observable[Message] = Observable.create(DropOld(limit)){ subscriber =>
     val c = SingleAssignmentCancelable()
     // Forced conversion, otherwise canceling will not work!
     val f: js.Function1[MessageEvent, Ack] = (e: MessageEvent) => {
-      val wsMsg = read[Message](e.data.toString)
+
+      val wsMsg = read[Message](e.data.toString) match {
+        case t: TimeMessage =>
+          t.copy(receiveTime = new Date().getTime.toLong)
+        case a => a
+      }
 
       subscriber.onNext(wsMsg).syncOnStopOrFailure((_) => c.cancel())
     }
@@ -48,6 +55,8 @@ class WebsocketClient(val limit: Int = 1000) {
       websocket.removeEventListener("message", f)
     })
   }
+
+  private val observable = o.share
 
   def getObservable: Observable[Message] = observable
 

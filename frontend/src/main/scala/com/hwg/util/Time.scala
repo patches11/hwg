@@ -1,14 +1,15 @@
 package com.hwg.util
 
 import com.hwg.WebsocketClient
-import shared.Protocol.TimeMessage
-import monix.execution.Scheduler.Implicits.global
+import com.hwg.Protocol.TimeMessage
+
 
 import scala.collection.mutable.ArrayBuffer
 import scala.scalajs.js.Date
 import scala.scalajs.js
 
 class Time(val client: WebsocketClient) {
+  import monix.execution.Scheduler.Implicits.global
 
   private case class TimeDelta(latency: Double, delta: Double)
 
@@ -19,7 +20,7 @@ class Time(val client: WebsocketClient) {
   init()
 
   def init(): Unit = {
-    client.getObservable.filter(_.isInstanceOf[TimeMessage]).foreach {
+    client.getObservable.collect {
       case TimeMessage(sendTime, serverTime, receiveTime) =>
         val latency = receiveTime - sendTime
         val delta = receiveTime - serverTime + latency / 2
@@ -35,7 +36,7 @@ class Time(val client: WebsocketClient) {
             this.setDelta(delta)
           }
         }
-    }
+    }.subscribe()
 
     js.timers.setTimeout(nextReq) {
       timeRequestLoop()
@@ -55,11 +56,15 @@ class Time(val client: WebsocketClient) {
 
       Stats.mean(filtered).foreach(delta => setDelta(delta.toLong))
     }
+
+    println(s"currentDelta $currentDelta")
   }
 
   private def setDelta(delta: Long): Unit = {
     currentDelta = Some(delta)
   }
+
+  def nowRaw: Long = new Date().getTime().toLong
 
   def now: Long = {
     new Date().getTime().toLong + currentDelta.getOrElse(0L)

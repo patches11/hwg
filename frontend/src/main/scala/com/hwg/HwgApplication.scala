@@ -8,13 +8,15 @@ import com.hwg.webgl.{HwgWebGLProgram, TextureLoader}
 import monix.reactive.Observable
 import org.scalajs.dom.KeyboardEvent
 import org.scalajs.dom.raw.WebGLRenderingContext
-import shared.Protocol.{State, ThisShip}
+import Protocol.{Initialized, State, ThisShip}
 
+import scala.collection.mutable
 import scala.scalajs.js
 
 class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[KeyboardEvent] ) {
   import WebGLRenderingContext._
   import com.hwg.models.ShipControls._
+  import monix.execution.Scheduler.Implicits.global
 
   val client = new WebsocketClient()
   val time = new Time(client)
@@ -22,7 +24,7 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
   val thisShip: Ship = new Ship(0, 0, 0, 0, 0)
   thisShip.control(keyboardEvents)
 
-  val ships: js.Array[Ship] = js.Array(thisShip)
+  val ships: mutable.Map[Int, Ship] = mutable.Map()
   val matrixStack = new MatrixStack()
 
   val system = SolarSystem(31687, gl)
@@ -45,7 +47,7 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
 
     system.draw(matrixStack, thisShip, timeNow, program)
 
-    ships.foreach { ship =>
+    ships.foreach { case (_, ship) =>
 
       matrixStack.save()
       matrixStack.translate(ship.x / 100, ship.y / 100, -10)
@@ -67,6 +69,13 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
     }
   }
 
+  client.getObservable.collect {
+    case Initialized(id) =>
+      ships.update(id, thisShip)
+    case s: State =>
+      lastReceivedState = Some(s)
+  }.subscribe()
+
   val program = HwgWebGLProgram(gl, draw)
 
   def tick(): Unit = {
@@ -74,9 +83,9 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
       lastTick = state.id
       //this.tickInterval = tick.tickInterval
       state.ships.foreach { case (id, shipInfo) =>
-        //val ship = this.ships[id] || new Ship()
-        //ship.updateFrom(shipInfo)
-        //this.ships[id] = ship
+        val ship = ships.getOrElse(id, Ship())
+        ship.updateFrom(shipInfo)
+        ships(id) = ship
       }
       lastReceivedState = None
     }
@@ -84,7 +93,7 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
     val thisTime = time.now
     val deltaTime = thisTime - lastTick
 
-    ships.foreach { ship =>
+    ships.foreach { case (_, ship) =>
       ship.tick(deltaTime)
 
       ship.projectiles.foreach((p) => p.tick(deltaTime))

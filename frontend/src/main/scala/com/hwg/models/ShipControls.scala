@@ -33,7 +33,7 @@ object ShipControls {
           } else {
             ship.manuevering = Manuever.CW
           }
-        case ev if ev.key == "Space" =>
+        case ev if ev.keyCode == 32 => // Space
           if (ev.`type` == "keyup") {
             ship.firing = false
           } else {

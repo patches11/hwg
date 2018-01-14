@@ -1,19 +1,17 @@
 package com.hwg
 
-import akka.actor.ActorSystem
+import akka.actor.{ActorSystem, Props}
 import akka.http.scaladsl.model.ws.{Message, TextMessage}
 import akka.http.scaladsl.server.Directives
-import akka.stream.scaladsl.{Flow, Sink, Source}
-import com.hwg.models.Ship
-import shared.Protocol
-import shared.Protocol.ThisShip
+import akka.stream.scaladsl.Flow
 import upickle.default._
 
-import scala.util.Failure
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
+import scala.util.Failure
 
 class Webservice(implicit system: ActorSystem) extends Directives {
+
+  val systemMaster = system.actorOf(Props(new SystemMaster))
 
   def route =
     get {
@@ -31,7 +29,9 @@ class Webservice(implicit system: ActorSystem) extends Directives {
     } ~
       getFromResourceDirectory("web")
 
-  def websocketFlow(): Flow[Message, Message, Any] =
+  def websocketFlow(): Flow[Message, Message, Any] = {
+    val shipFlow = ShipFlow.create(system, systemMaster)
+
     Flow[Message]
       .collect {
         case TextMessage.Strict(msg) ⇒ msg // unpack incoming WS text messages...
@@ -39,23 +39,12 @@ class Webservice(implicit system: ActorSystem) extends Directives {
         // unlikely because chat messages are small) but absolutely possible
         // FIXME: We need to handle TextMessage.Streamed as well.
       }
-      .via(dataFlow()) // ... and route them through the chatFlow ...
+      .via(shipFlow.flow()) // ... and route them through the chatFlow ...
       .map {
       case msg: Protocol.Message ⇒
         TextMessage.Strict(write(msg)) // ... pack outgoing messages into WS JSON messages ...
     }
       .via(reportErrorsFlow) // ... then log any processing errors on stdin
-
-  def dataFlow(): Flow[String, Protocol.Message, Any] = {
-    val in = Sink.foreach[String](println)
-
-    // The counter-part which is a source that will create a target ActorRef per
-    // materialization where the chatActor will send its messages to.
-    // This source will only buffer one element and will fail if the client doesn't read
-    // messages fast enough.
-    val out = Source.tick[Protocol.Message](1 second, 1 second, ThisShip(Ship(0, 0, 0, 0, 0)))
-
-    Flow.fromSinkAndSource(in, out)
   }
 
   def reportErrorsFlow[T]: Flow[T, T, Any] =
