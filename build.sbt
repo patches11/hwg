@@ -20,10 +20,12 @@ lazy val root =
     .settings(
       mainClass in Compile := Some("com.hwg.Hwg")
     )
+    .enablePlugins(JavaAppPackaging)
+    .dependsOn(backend)
 
 lazy val vecmath = ProjectRef(uri("git://github.com/patches11/vecmath.git#0010d1f062d8295fd78d1e98091cba2c85265196"), "vecMathJS")
 
-enablePlugins(JavaAppPackaging)
+
 
 // Scala-Js frontend
 lazy val frontend =
