@@ -29,8 +29,8 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
 
   val system = SolarSystem(31687, gl)
 
-  val shipModel = TwoDModel(textureLoader.get("/img/ShipA.png"), gl, 50, 75)
-  val laserModel = TwoDModel(textureLoader.get("/img/LaserA.png"), gl, 25, 50)
+  val shipModel = TwoDModel(textureLoader.get("/img/shipA.png"), gl, 50, 75)
+  val laserModel = TwoDModel(textureLoader.get("/img/laserA.png"), gl, 25, 50)
 
   var lastTick: Long = time.now
   var tickInterval: Long = 25
