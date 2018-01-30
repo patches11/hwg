@@ -9,6 +9,8 @@ object Protocol {
                   serverTime: Long,
                   receiveTime: Long) extends Message
 
+  case class Dead(id: Long) extends Message
+
   case class ThisShip(ship: Ship) extends Message
 
   case class State(

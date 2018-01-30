@@ -67,7 +67,7 @@ case class SolarSystem(seed: Long, gl: WebGLRenderingContext) {
 
     planets.foreach { planet =>
       matrixStack.save()
-      matrixStack.translate(planet.x, planet.y, -16)
+      matrixStack.translate(planet.x, planet.y, -25)
       matrixStack.rotateZ(Math.sin(time.toDouble / 100000 + Math.PI) * Math.PI)
       matrixStack.rotateX(Math.cos(time.toDouble / 100000 + Math.PI) * Math.PI)
       planet.model.draw(program, matrixStack, thisShip.x / 100, thisShip.y / 100)

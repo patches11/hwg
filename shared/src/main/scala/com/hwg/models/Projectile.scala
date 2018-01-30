@@ -1,10 +1,13 @@
 package com.hwg.models
 
-case class Projectile(var x: Double, var y: Double, var vX: Double, var vY: Double, var orientation: Double) {
+import scala.concurrent.duration._
 
-  def tick(deltaTime: Double): Projectile = {
-    x = this.x + this.vX * deltaTime / 100
-    y = this.y + this.vY * deltaTime / 100
+case class Projectile(var x: Double, var y: Double, var speed: Double, var speedOrientation: Double, var orientation: Double) extends Entity {
+  var lifetime = 2 seconds
+
+  override def tick(deltaTime: Double): Entity = {
+    super.tick(deltaTime)
+    lifetime = lifetime.minus(deltaTime millis)
     this
   }
 }

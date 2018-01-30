@@ -7,13 +7,15 @@ import com.hwg.webgl.background.SolarSystem
 import com.hwg.webgl.{HwgWebGLProgram, TextureLoader}
 import monix.reactive.Observable
 import org.scalajs.dom.KeyboardEvent
-import org.scalajs.dom.raw.WebGLRenderingContext
-import Protocol.{Initialized, State, ThisShip}
+import org.scalajs.dom.raw.{WebGLRenderingContext, WheelEvent}
+import Protocol.{Dead, Initialized, State, ThisShip}
+import scala.scalajs.js
+import js.Dynamic.{ global => g }
 
 import scala.collection.mutable
 import scala.scalajs.js
 
-class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[KeyboardEvent] ) {
+class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[KeyboardEvent], wheelEvents: Observable[WheelEvent] ) {
   import WebGLRenderingContext._
   import com.hwg.models.ShipControls._
   import monix.execution.Scheduler.Implicits.global
@@ -21,7 +23,10 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
   val client = new WebsocketClient()
   val time = new Time(client)
   val textureLoader = new TextureLoader(gl)
-  val thisShip: Ship = new Ship(0, 0, 0, 0, 0)
+
+  val thisShip: Ship = Ship()
+  var id: Option[Int] = None
+
   thisShip.control(keyboardEvents)
 
   val ships: mutable.Map[Int, Ship] = mutable.Map()
@@ -29,7 +34,7 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
 
   val system = SolarSystem(31687, gl)
 
-  val shipModel = TwoDModel(textureLoader.get("/img/shipA.png"), gl, 50, 75)
+  val shipModel = TwoDModel(textureLoader.get("/img/shipA.png"), gl, 66, 100)
   val laserModel = TwoDModel(textureLoader.get("/img/laserA.png"), gl, 25, 50)
 
   var lastTick: Long = time.now
@@ -50,7 +55,7 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
     ships.foreach { case (_, ship) =>
 
       matrixStack.save()
-      matrixStack.translate(ship.x / 100, ship.y / 100, -10)
+      matrixStack.translate(ship.x / 100, ship.y / 100, -20)
       matrixStack.rotateZ(ship.orientation)
 
       shipModel.draw(program, matrixStack, thisShip.x / 100, thisShip.y / 100)
@@ -59,7 +64,7 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
 
       ship.projectiles.foreach { projectile =>
         matrixStack.save()
-        matrixStack.translate(projectile.x / 100, projectile.y / 100, -10)
+        matrixStack.translate(projectile.x / 100, projectile.y / 100, -20)
         matrixStack.rotateZ(projectile.orientation)
 
         laserModel.draw(program, matrixStack, thisShip.x / 100, thisShip.y / 100)
@@ -70,13 +75,21 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
   }
 
   client.getObservable.collect {
-    case Initialized(id) =>
-      ships.update(id, thisShip)
+    case Initialized(lId) =>
+      id = Some(lId)
+      ships.update(lId, thisShip)
     case s: State =>
       lastReceivedState = Some(s)
+    case Dead(dId) =>
+      if (id.contains(dId))
+        g.alert("Dead!!!!!")
   }.subscribe()
 
   val program = HwgWebGLProgram(gl, draw)
+
+  wheelEvents.foreach { we =>
+    program.zoom(we.deltaY)
+  }
 
   def tick(): Unit = {
     lastReceivedState.foreach { state =>

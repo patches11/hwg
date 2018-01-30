@@ -4,13 +4,13 @@ import org.scalajs.dom
 import org.scalajs.dom.raw.{WebGLProgram, WebGLRenderingContext, WebGLShader, WebGLUniformLocation}
 import scryetek.vecmath.Mat4
 
-import scala.util.Try
-
 case class HwgWebGLProgram(gl: WebGLRenderingContext, draw: () => Unit) {
-  import com.hwg.util.VecmathConverters._
+
   import WebGLRenderingContext._
+  import com.hwg.util.VecmathConverters._
 
   val program: WebGLProgram = initShaderProgram(Shaders.vShader, Shaders.fShader)
+  var z: Double = 0
 
   gl.useProgram(program)
 
@@ -38,8 +38,8 @@ case class HwgWebGLProgram(gl: WebGLRenderingContext, draw: () => Unit) {
   gl.blendFunc(SRC_ALPHA, ONE_MINUS_SRC_ALPHA)
   gl.enable(BLEND)
 
-  gl.enable(DEPTH_TEST)           // Enable depth testing
-  gl.depthFunc(LEQUAL)            // Near things obscure far things
+  gl.enable(DEPTH_TEST) // Enable depth testing
+  gl.depthFunc(LEQUAL) // Near things obscure far things
 
   gl.clear(COLOR_BUFFER_BIT | DEPTH_BUFFER_BIT)
 
@@ -53,6 +53,15 @@ case class HwgWebGLProgram(gl: WebGLRenderingContext, draw: () => Unit) {
 
   dom.window.requestAnimationFrame(updater)
 
+  def zoom(zDiff: Double): Unit = {
+    z -= zDiff / 50
+    if (z < -10) {
+      z = -10
+    } else if ( z > 10) {
+      z = 10
+    }
+  }
+
   def setMatrixUniforms(mvMatrix: Mat4, x: Double, y: Double): Unit = {
     gl.uniformMatrix4fv(moveMatrix, transpose = false, mvMatrix.toJsArrayT)
 
@@ -65,12 +74,12 @@ case class HwgWebGLProgram(gl: WebGLRenderingContext, draw: () => Unit) {
     gl.uniformMatrix4fv(this.normalMatrix, transpose = false, normalMatrix.toJsArrayT)
   }
 
-  def setCamera(x: Double, y: Double, z: Double = 0): Unit = {
+  def setCamera(x: Double, y: Double): Unit = {
     val cameraMatrix = Mat4().postTranslate(x.toFloat, y.toFloat, z.toFloat)
     val viewMatrix = cameraMatrix.dup
     viewMatrix.invert()
 
-    val pMatrix = Mat4.perspective((Math.PI / 4).toFloat, gl.canvas.width.toFloat / gl.canvas.height, 0.1f, 100.0f)
+    val pMatrix = Mat4.perspective((Math.PI / 4).toFloat, gl.canvas.width.toFloat / gl.canvas.height, 0.1f, 200.0f)
 
     val pvMatrix = pMatrix.postMultiply(viewMatrix)
 

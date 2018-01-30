@@ -7,6 +7,7 @@ import monix.reactive.OverflowStrategy.DropOld
 
 import scala.scalajs.js
 import org.scalajs.dom
+import org.scalajs.dom.raw.WheelEvent
 import org.scalajs.dom.{Event, KeyboardEvent, html, raw}
 
 object Boot extends js.JSApp {
@@ -19,12 +20,14 @@ object Boot extends js.JSApp {
   def main(): Unit = {
     val gl: raw.WebGLRenderingContext = canvas.getContext("webgl", {}).asInstanceOf[raw.WebGLRenderingContext]
 
-    val keyboardEvents = eventListener().groupBy(_.keyCode).map(_.distinctUntilChangedByKey(_.`type`)).merge
+    val keyboardEvents = keyboardEventListener().groupBy(_.keyCode).map(_.distinctUntilChangedByKey(_.`type`)).merge
 
-    new HwgApplication(gl, keyboardEvents)
+    val wheelEvents = wheelEventListener
+
+    new HwgApplication(gl, keyboardEvents, wheelEvents)
   }
 
-  def eventListener(): Observable[KeyboardEvent] = {
+  def keyboardEventListener(): Observable[KeyboardEvent] = {
     Observable.create(DropOld(eventLimit)) { subscriber =>
       val c = SingleAssignmentCancelable()
       // Forced conversion, otherwise canceling will not work!
@@ -36,6 +39,20 @@ object Boot extends js.JSApp {
       c := Cancelable(() => {
         dom.document.removeEventListener("keydown", f)
         dom.document.removeEventListener("keyup", f)
+      })
+    }
+  }
+
+  def wheelEventListener: Observable[WheelEvent] = {
+    Observable.create(DropOld(eventLimit)) { subscriber =>
+      val c = SingleAssignmentCancelable()
+      // Forced conversion, otherwise canceling will not work!
+      val f: js.Function1[WheelEvent, Ack] = (e: WheelEvent) =>
+        subscriber.onNext(e).syncOnStopOrFailure((_) => c.cancel())
+
+      dom.document.addEventListener("wheel", f)
+      c := Cancelable(() => {
+        dom.document.removeEventListener("wheel", f)
       })
     }
   }

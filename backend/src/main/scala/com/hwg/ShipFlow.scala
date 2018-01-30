@@ -6,7 +6,7 @@ import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import com.hwg.LocalMessages.{ShipLeft, ShipUpdate}
-import Protocol.{Initialized, State, ThisShip, TimeMessage}
+import Protocol._
 import upickle.default._
 
 import scala.util.{Success, Try}
@@ -61,6 +61,7 @@ object ShipFlow {
     var id: Int = _
 
     system.eventStream.subscribe(self, classOf[State])
+    system.eventStream.subscribe(self, classOf[Dead])
 
     def receive: Receive = {
       case Init(a, i) =>
@@ -77,6 +78,8 @@ object ShipFlow {
         systemMaster ! ShipUpdate(id, ship)
       case su: State =>
         output ! su
+      case dead: Dead =>
+        output ! dead
     }
   }
 }

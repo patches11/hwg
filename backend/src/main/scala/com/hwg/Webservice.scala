@@ -22,12 +22,13 @@ class Webservice(implicit system: ActorSystem) extends Directives {
         // so that's where we pick them up
         path("frontend-launcher.js")(getFromResource("frontend-launcher.js")) ~
         path("frontend-fastopt.js")(getFromResource("frontend-fastopt.js")) ~
+        path("frontend-opt.js")(getFromResource("frontend-opt.js")) ~
         path("frontend-fastopt.js.map")(getFromResource("frontend-fastopt.js.map")) ~
         path("websocket") {
           handleWebSocketMessages(websocketFlow())
         }
     } ~
-      getFromResourceDirectory("web")
+    getFromResourceDirectory("web")
 
   def websocketFlow(): Flow[Message, Message, Any] = {
     val shipFlow = ShipFlow.create(system, systemMaster)
@@ -40,9 +41,8 @@ class Webservice(implicit system: ActorSystem) extends Directives {
         // FIXME: We need to handle TextMessage.Streamed as well.
       }
       .via(shipFlow.flow()) // ... and route them through the chatFlow ...
-      .map {
-      case msg: Protocol.Message ⇒
-        TextMessage.Strict(write(msg)) // ... pack outgoing messages into WS JSON messages ...
+      .map { msg: Protocol.Message ⇒
+      TextMessage.Strict(write(msg)) // ... pack outgoing messages into WS JSON messages ...
     }
       .via(reportErrorsFlow) // ... then log any processing errors on stdin
   }
