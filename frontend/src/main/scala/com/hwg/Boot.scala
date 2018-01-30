@@ -4,11 +4,11 @@ import monix.execution.cancelables.SingleAssignmentCancelable
 import monix.execution.{Ack, Cancelable}
 import monix.reactive.Observable
 import monix.reactive.OverflowStrategy.DropOld
-
-import scala.scalajs.js
 import org.scalajs.dom
 import org.scalajs.dom.raw.WheelEvent
-import org.scalajs.dom.{Event, KeyboardEvent, html, raw}
+import org.scalajs.dom.{KeyboardEvent, html, raw}
+
+import scala.scalajs.js
 
 object Boot extends js.JSApp {
 

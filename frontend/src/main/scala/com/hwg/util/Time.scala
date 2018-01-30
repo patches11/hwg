@@ -24,6 +24,7 @@ class Time(val client: WebsocketClient) {
       case TimeMessage(sendTime, serverTime, receiveTime) =>
         val latency = receiveTime - sendTime
         val delta = receiveTime - serverTime + latency / 2
+        println(s"latency $latency")
 
         val sample = TimeDelta(latency, delta)
 
