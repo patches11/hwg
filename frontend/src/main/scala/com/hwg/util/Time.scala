@@ -76,10 +76,10 @@ class Time(val client: WebsocketClient) {
     samples.length match {
       case 0 =>
         10
-      case n if n < obsLimit =>
+      case n if n < obsLimit * 2 =>
         (Math.random() * 1000 + 1000).toLong
       case _ =>
-        (Math.random() * 5000 + 60000).toLong
+        (Math.random() * 5000 + 10000).toLong
     }
   }
 

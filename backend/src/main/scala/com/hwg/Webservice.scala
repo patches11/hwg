@@ -3,15 +3,18 @@ package com.hwg
 import akka.actor.{ActorSystem, Props}
 import akka.http.scaladsl.model.ws.{Message, TextMessage}
 import akka.http.scaladsl.server.Directives
+import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Flow
 import upickle.default._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.Failure
+import scala.util.{Failure, Success, Try}
 
 class Webservice(implicit system: ActorSystem) extends Directives {
 
   val systemMaster = system.actorOf(Props(new SystemMaster))
+
+  implicit val materializer = ActorMaterializer()
 
   def route =
     get {
@@ -28,19 +31,24 @@ class Webservice(implicit system: ActorSystem) extends Directives {
           handleWebSocketMessages(websocketFlow())
         }
     } ~
-    getFromResourceDirectory("web")
+      getFromResourceDirectory("web")
 
   def websocketFlow(): Flow[Message, Message, Any] = {
     val shipFlow = ShipFlow.create(system, systemMaster)
 
     Flow[Message]
       .collect {
-        case TextMessage.Strict(msg) ⇒ msg // unpack incoming WS text messages...
+        case TextMessage.Strict(msg) =>
+          Try(read[Protocol.Message](msg))
+        // unpack incoming WS text messages...
         // This will lose (ignore) messages not received in one chunk (which is
         // unlikely because chat messages are small) but absolutely possible
         // FIXME: We need to handle TextMessage.Streamed as well.
       }
-      .via(shipFlow.flow()) // ... and route them through the chatFlow ...
+      .collect {
+        case Success(msg) => msg
+      }
+      .via(shipFlow) // ... and route them through the chatFlow ...
       .map { msg: Protocol.Message ⇒
       TextMessage.Strict(write(msg)) // ... pack outgoing messages into WS JSON messages ...
     }
