@@ -5,8 +5,7 @@ import enumeratum.values._
 sealed abstract class Manuever(val value: Long) extends LongEnumEntry
 
 case object Manuever
-  extends LongEnum[Manuever]
-    with LongUPickleEnum[Manuever] {
+  extends LongEnum[Manuever] {
 
   val values = findValues
 
@@ -16,3 +15,4 @@ case object Manuever
   case object Reverse extends Manuever(value = 4L)
 
 }
+

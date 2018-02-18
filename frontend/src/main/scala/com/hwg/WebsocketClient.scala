@@ -1,25 +1,49 @@
 package com.hwg
 
-import monix.execution.{Ack, Cancelable}
+import java.nio.ByteBuffer
+
+import boopickle.Default._
+import com.hwg.Protocol.{Message, TimeMessage}
 import monix.execution.cancelables.SingleAssignmentCancelable
+import monix.execution.{Ack, Cancelable}
 import monix.reactive.Observable
 import monix.reactive.OverflowStrategy.DropOld
-import org.scalajs.dom
-import org.scalajs.dom.raw.{Event, MessageEvent, WebSocket}
 import monix.reactive.subjects.PublishSubject
-import Protocol.{Message, TimeMessage}
-import upickle.default._
+import org.scalajs.dom
+import org.scalajs.dom.raw.{Blob, Event, MessageEvent, WebSocket}
+import scala.scalajs.js.typedarray.TypedArrayBufferOps._
 
 import scala.scalajs.js
 import scala.scalajs.js.Date
+import scala.scalajs.js.typedarray.{ArrayBuffer, TypedArrayBuffer, Uint8Array}
 
 class WebsocketClient(val limit: Int = 1000) {
 
   import monix.execution.Scheduler.Implicits.global
 
-  private var active = false
-
   private val websocket = new WebSocket(getWebsocketUri)
+  websocket.binaryType = "arraybuffer"
+  private val o: Observable[Message] = Observable.create(DropOld(limit)) { subscriber =>
+    val c = SingleAssignmentCancelable()
+    // Forced conversion, otherwise canceling will not work!
+    val f: js.Function1[MessageEvent, Ack] = (e: MessageEvent) => {
+      e.data match {
+        case buff: ArrayBuffer=>
+          val bytes: ByteBuffer = TypedArrayBuffer.wrap(buff)
+          val wsMsg = Unpickle[Message].fromBytes(bytes) match {
+            case t: TimeMessage =>
+              t.copy(receiveTime = new Date().getTime.toLong)
+            case a => a
+          }
+          subscriber.onNext(wsMsg).syncOnStopOrFailure((_) => c.cancel())
+      }
+    }
+
+    websocket.addEventListener("message", f)
+    c := Cancelable(() => {
+      websocket.removeEventListener("message", f)
+    })
+  }
 
   PublishSubject[Message]()
 
@@ -34,36 +58,30 @@ class WebsocketClient(val limit: Int = 1000) {
   websocket.onclose = { (event: Event) =>
     active = false
   }
-
-
-  private val o: Observable[Message] = Observable.create(DropOld(limit)){ subscriber =>
-    val c = SingleAssignmentCancelable()
-    // Forced conversion, otherwise canceling will not work!
-    val f: js.Function1[MessageEvent, Ack] = (e: MessageEvent) => {
-
-      val wsMsg = read[Message](e.data.toString) match {
-        case t: TimeMessage =>
-          t.copy(receiveTime = new Date().getTime.toLong)
-        case a => a
-      }
-
-      subscriber.onNext(wsMsg).syncOnStopOrFailure((_) => c.cancel())
-    }
-
-    websocket.addEventListener("message", f)
-    c := Cancelable(() => {
-      websocket.removeEventListener("message", f)
-    })
-  }
-
   private val observable = o.share
+  private var active = false
 
   def getObservable: Observable[Message] = observable
 
   def alive: Boolean = this.active
 
+  implicit def bytes2message(data: ByteBuffer): ArrayBuffer = {
+    if (data.hasTypedArray()) {
+      // get relevant part of the underlying typed array
+      data.typedArray().subarray(data.position, data.limit).buffer
+    } else {
+      // fall back to copying the data
+      val tempBuffer = ByteBuffer.allocateDirect(data.remaining)
+      val origPosition = data.position
+      tempBuffer.put(data)
+      data.position(origPosition)
+      tempBuffer.typedArray().buffer
+    }
+  }
+
   def send(validMessage: Message): Unit = {
-    websocket.send(write(validMessage))
+    val data = Pickle.intoBytes(validMessage)
+    websocket.send(data)
   }
 
   def getWebsocketUri: String = {

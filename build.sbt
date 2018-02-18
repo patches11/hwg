@@ -1,8 +1,4 @@
-name := "HWG"
 
-organization := "com.hwg"
-
-version := "0.1"
 
 val scalaV = "2.12.4"
 
@@ -12,13 +8,17 @@ val upickleV = "0.4.4"
 val utestV = "0.4.5"
 val specs2V = "4.0.2"
 val scalaJsDomV = "0.9.1"
+val boopickleV = "1.2.6"
 
 lazy val root =
   project.in(file("."))
     .aggregate(backend)
     .settings(commonSettings: _*)
     .settings(
-      mainClass in Compile := Some("com.hwg.Hwg")
+      mainClass in Compile := Some("com.hwg.Hwg"),
+      name := "HWG",
+      organization := "com.hwg",
+      version := "0.1",
     )
     .enablePlugins(JavaAppPackaging)
     .dependsOn(backend)
@@ -39,7 +39,7 @@ lazy val frontend =
       testFrameworks += new TestFramework("utest.runner.Framework"),
       libraryDependencies ++= Seq(
         "org.scala-js" %%% "scalajs-dom" % scalaJsDomV,
-        "com.lihaoyi" %%% "upickle" % upickleV,
+        "io.suzaku" %%% "boopickle" % boopickleV,
         "com.lihaoyi" %%% "utest" % utestV % "test",
         "io.monix" %%% "monix" % "2.2.1"
       )
@@ -55,7 +55,7 @@ lazy val backend =
         "com.typesafe.akka" %% "akka-stream" % akkaV % "runtime",
         "com.typesafe.akka" %% "akka-http" % akkaHttpV,
         "org.specs2" %% "specs2-core" % specs2V % "test",
-        "com.lihaoyi" %% "upickle" % upickleV
+        "io.suzaku" %% "boopickle" % boopickleV
       ),
       resourceGenerators in Compile += Def.task {
         val f1 = (fastOptJS in Compile in frontend).value
@@ -77,7 +77,6 @@ lazy val shared =
       libraryDependencies ++= Seq(
         compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
         "com.thoughtworks.enableIf" %% "enableif" % "latest.release",
-        "com.beachape" %% "enumeratum-upickle" % enumeratumUPickleVersion,
         "com.beachape" %% "enumeratum" % enumeratumVersion
       )
     )

@@ -1,14 +1,15 @@
 package com.hwg
 
 import akka.actor.{ActorSystem, Props}
-import akka.http.scaladsl.model.ws.{Message, TextMessage}
+import akka.http.scaladsl.model.ws.{BinaryMessage, Message}
 import akka.http.scaladsl.server.Directives
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Flow
-import upickle.default._
+import akka.util.ByteString
+import boopickle.Default._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 class Webservice(implicit system: ActorSystem) extends Directives {
 
@@ -38,19 +39,18 @@ class Webservice(implicit system: ActorSystem) extends Directives {
 
     Flow[Message]
       .collect {
-        case TextMessage.Strict(msg) =>
-          Try(read[Protocol.Message](msg))
-        // unpack incoming WS text messages...
-        // This will lose (ignore) messages not received in one chunk (which is
-        // unlikely because chat messages are small) but absolutely possible
-        // FIXME: We need to handle TextMessage.Streamed as well.
+        case BinaryMessage.Strict(bytes) =>
+          Unpickle[Protocol.Message].tryFromBytes(bytes.toByteBuffer)
+        case BinaryMessage.Streamed(dataStream) =>
+          ???
       }
       .collect {
         case Success(msg) => msg
       }
       .via(shipFlow) // ... and route them through the chatFlow ...
-      .map { msg: Protocol.Message ⇒
-      TextMessage.Strict(write(msg)) // ... pack outgoing messages into WS JSON messages ...
+      .map { msg: Protocol.Message =>
+      val pickled = Pickle.intoBytes(msg)
+      BinaryMessage.Strict(ByteString.fromByteBuffer(pickled))
     }
       .via(reportErrorsFlow) // ... then log any processing errors on stdin
   }
