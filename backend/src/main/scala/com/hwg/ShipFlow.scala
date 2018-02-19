@@ -5,7 +5,6 @@ import java.time.Clock
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorRefFactory, ActorSystem, Props}
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Flow
-import com.hwg.ActorFlow.Init
 import com.hwg.LocalMessages.{ShipLeft, ShipUpdate}
 import com.hwg.Protocol._
 
@@ -15,7 +14,7 @@ object ShipFlow {
   private var id = 0
 
   def create(system: ActorSystem, systemMaster: ActorRef)(implicit actorRefFactory: ActorRefFactory, mat: akka.stream.Materializer): Flow[Protocol.Message, Protocol.Message, Any] = {
-    ActorFlow.actorRef2[Protocol.Message, Protocol.Message]({ out =>
+    ActorFlow.actorRef[Protocol.Message, Protocol.Message]({ out =>
       props(out, systemMaster)
     }, bufferSize, overflowStrategy)
   }
@@ -35,12 +34,13 @@ object ShipFlow {
     system.eventStream.subscribe(self, classOf[State])
     system.eventStream.subscribe(self, classOf[Dead])
 
-    output ! Initialized(id)
+
+    override def preStart(): Unit = {
+      super.preStart()
+      output ! Initialized(id)
+    }
 
     def receive: Receive = {
-      case Init(o) =>
-        output = o
-        output ! Initialized(id)
       case t: TimeMessage =>
         output ! t.copy(serverTime = clock.millis())
       case ThisShip(ship) =>
