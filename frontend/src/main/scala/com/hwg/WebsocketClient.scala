@@ -10,12 +10,13 @@ import monix.reactive.Observable
 import monix.reactive.OverflowStrategy.DropOld
 import monix.reactive.subjects.PublishSubject
 import org.scalajs.dom
-import org.scalajs.dom.raw.{Blob, Event, MessageEvent, WebSocket}
-import scala.scalajs.js.typedarray.TypedArrayBufferOps._
+import org.scalajs.dom.raw.{Event, MessageEvent, WebSocket}
 
+import scala.language.implicitConversions
 import scala.scalajs.js
 import scala.scalajs.js.Date
-import scala.scalajs.js.typedarray.{ArrayBuffer, TypedArrayBuffer, Uint8Array}
+import scala.scalajs.js.typedarray.TypedArrayBufferOps._
+import scala.scalajs.js.typedarray.{ArrayBuffer, TypedArrayBuffer}
 
 class WebsocketClient(val limit: Int = 1000) {
 
@@ -28,7 +29,7 @@ class WebsocketClient(val limit: Int = 1000) {
     // Forced conversion, otherwise canceling will not work!
     val f: js.Function1[MessageEvent, Ack] = (e: MessageEvent) => {
       e.data match {
-        case buff: ArrayBuffer=>
+        case buff: ArrayBuffer =>
           val bytes: ByteBuffer = TypedArrayBuffer.wrap(buff)
           val wsMsg = Unpickle[Message].fromBytes(bytes) match {
             case t: TimeMessage =>

@@ -3,15 +3,15 @@ package com.hwg
 import java.time.Clock
 
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorRefFactory, ActorSystem, Props}
-import akka.stream.{ActorMaterializer, OverflowStrategy}
+import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Flow
 import com.hwg.LocalMessages.{ShipLeft, ShipUpdate}
 import com.hwg.Protocol._
 
 object ShipFlow {
-  val bufferSize = 1000
-  val overflowStrategy = OverflowStrategy.dropHead
-  var id = 0
+  private val bufferSize = 1000
+  private val overflowStrategy = OverflowStrategy.dropHead
+  private var id = 0
 
   def create(system: ActorSystem, systemMaster: ActorRef)(implicit actorRefFactory: ActorRefFactory, mat: akka.stream.Materializer): Flow[Protocol.Message, Protocol.Message, Any] = {
     ActorFlow.actorRef[Protocol.Message, Protocol.Message]({ out =>
