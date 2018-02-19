@@ -40,6 +40,7 @@ object ShipFlow {
     def receive: Receive = {
       case Init(o) =>
         output = o
+        output ! Initialized(id)
       case t: TimeMessage =>
         output ! t.copy(serverTime = clock.millis())
       case ThisShip(ship) =>
