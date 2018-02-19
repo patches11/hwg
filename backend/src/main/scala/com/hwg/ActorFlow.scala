@@ -51,4 +51,21 @@ object ActorFlow {
       Source.fromPublisher(publisher)
     )
   }
+
+  case class Init(actorRef: ActorRef)
+
+  private class Blank extends Actor {
+    override def receive: Receive = PartialFunction.empty
+  }
+
+  def actorRef2[In, Out](props: ActorRef => Props, bufferSize: Int = 16, overflowStrategy: OverflowStrategy = OverflowStrategy.dropNew)(implicit factory: ActorRefFactory, mat: Materializer): Flow[In, Out, _] = {
+    val blank = factory.actorOf(Props(new Blank))
+    val shipActor = factory.actorOf(props(blank))
+    val out = Source.actorRef[Out](bufferSize, OverflowStrategy.dropHead).mapMaterializedValue(ref => shipActor ! Init(ref))
+
+    val sink = Sink.actorRef[In](shipActor, Status.Success(()))
+
+    Flow.fromSinkAndSource(sink, out)
+  }
+
 }
