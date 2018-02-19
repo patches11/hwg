@@ -22,8 +22,6 @@ class Webservice(implicit system: ActorSystem) extends Directives {
       pathSingleSlash {
         getFromResource("web/index.html")
       } ~
-        // Scala-JS puts them in the root of the resource directory per default,
-        // so that's where we pick them up
         path("frontend-launcher.js")(getFromResource("frontend-launcher.js")) ~
         path("frontend-fastopt.js")(getFromResource("frontend-fastopt.js")) ~
         path("frontend-opt.js")(getFromResource("frontend-opt.js")) ~
@@ -47,12 +45,12 @@ class Webservice(implicit system: ActorSystem) extends Directives {
       .collect {
         case Success(msg) => msg
       }
-      .via(shipFlow) // ... and route them through the chatFlow ...
+      .via(shipFlow)
       .map { msg: Protocol.Message =>
-      val pickled = Pickle.intoBytes(msg)
-      BinaryMessage.Strict(ByteString.fromByteBuffer(pickled))
-    }
-      .via(reportErrorsFlow) // ... then log any processing errors on stdin
+        val pickled = Pickle.intoBytes(msg)
+        BinaryMessage.Strict(ByteString.fromByteBuffer(pickled))
+      }
+      .via(reportErrorsFlow)
   }
 
   def reportErrorsFlow[T]: Flow[T, T, Any] =

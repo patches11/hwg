@@ -48,6 +48,7 @@ object ShipFlow {
     }
 
     override def postStop() = {
+      log.info(s"Ship Actor $id closing")
       systemMaster ! ShipLeft(id)
     }
   }
