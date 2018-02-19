@@ -44,6 +44,7 @@ object ActorFlow {
           case Status.Failure(e) =>
             log.info("Failure")
             log.info(e.getMessage)
+            e.printStackTrace()
             flowActor ! PoisonPill
           case Terminated(_) =>
             log.info("Terminated")
