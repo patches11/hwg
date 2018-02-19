@@ -59,5 +59,6 @@ class Webservice(implicit system: ActorSystem) extends Directives {
         case Failure(cause) =>
           println(s"WS stream failed with $cause")
         case _ => // ignore regular completion
+          println("WS Completed")
       })
 }
