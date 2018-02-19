@@ -34,6 +34,8 @@ object ShipFlow {
     system.eventStream.subscribe(self, classOf[State])
     system.eventStream.subscribe(self, classOf[Dead])
 
+    output ! Initialized(id)
+
     def receive: Receive = {
       case t: TimeMessage =>
         output ! t.copy(serverTime = clock.millis())
