@@ -3,12 +3,14 @@ package com.hwg
 import akka.actor.{ActorSystem, Props}
 import akka.http.scaladsl.model.ws.{BinaryMessage, Message}
 import akka.http.scaladsl.server.Directives
-import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.Flow
+import akka.stream.scaladsl.{Flow, GraphDSL, Merge, Partition}
+import akka.stream.{ActorMaterializer, FlowShape}
 import akka.util.ByteString
 import boopickle.Default._
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+import scala.language.postfixOps
 import scala.util.{Failure, Success}
 
 class Webservice(implicit system: ActorSystem) extends Directives {
@@ -35,13 +37,34 @@ class Webservice(implicit system: ActorSystem) extends Directives {
   def websocketFlow(): Flow[Message, Message, Any] = {
     val shipFlow = ShipFlow.create(system, systemMaster)
 
-    Flow[Message]
+    val streamedFlow = Flow[Message].collect {
+      case BinaryMessage.Streamed(dataStream) =>
+        dataStream
+          .completionTimeout(2 seconds)
+          .runFold(ByteString.empty)(_ ++ _)
+    }.mapAsync(parallelism = 3)(identity)
+
+    val strictFlow = Flow[Message]
       .collect {
         case BinaryMessage.Strict(bytes) =>
-          Unpickle[Protocol.Message].tryFromBytes(bytes.toByteBuffer)
-        case BinaryMessage.Streamed(dataStream) =>
-          ???
+          bytes
       }
+
+    val splitter = Flow.fromGraph(GraphDSL.create() { implicit builder =>
+      import GraphDSL.Implicits._
+
+      val split = builder.add(Partition(2, portMapper))
+      val merge = builder.add(Merge[ByteString](2))
+
+      split.out(0) ~> streamedFlow ~> merge.in(0)
+      split.out(1) ~> strictFlow ~> merge.in(1)
+
+      FlowShape(split.in, merge.out)
+    })
+
+    splitter.map { bytes =>
+      Unpickle[Protocol.Message].tryFromBytes(bytes.toByteBuffer)
+    }
       .collect {
         case Success(msg) => msg
       }
@@ -51,6 +74,14 @@ class Webservice(implicit system: ActorSystem) extends Directives {
         BinaryMessage.Strict(ByteString.fromByteBuffer(pickled))
       }
       .via(reportErrorsFlow)
+  }
+
+  private def portMapper(value: Message): Int = {
+    value match {
+      case BinaryMessage.Streamed(_) => 0
+      case BinaryMessage.Strict(_) => 1
+      case _ => 1
+    }
   }
 
   def reportErrorsFlow[T]: Flow[T, T, Any] =
