@@ -24,6 +24,10 @@ class WebsocketClient(val limit: Int = 1000) {
 
   private val websocket = new WebSocket(getWebsocketUri)
   websocket.binaryType = "arraybuffer"
+
+  var rcount = 0
+  var scount = 0
+
   private val o: Observable[Message] = Observable.create(DropOld(limit)) { subscriber =>
     val c = SingleAssignmentCancelable()
     // Forced conversion, otherwise canceling will not work!
@@ -36,6 +40,9 @@ class WebsocketClient(val limit: Int = 1000) {
               t.copy(receiveTime = new Date().getTime.toLong)
             case a => a
           }
+          rcount = rcount + 1
+          if (rcount % 60 == 0)
+            println(wsMsg)
           subscriber.onNext(wsMsg).syncOnStopOrFailure((_) => c.cancel())
       }
     }
@@ -81,6 +88,9 @@ class WebsocketClient(val limit: Int = 1000) {
   }
 
   def send(validMessage: Message): Unit = {
+    scount = scount + 1
+    if (scount % 60 == 0)
+      println(validMessage)
     val data = Pickle.intoBytes(validMessage)
     websocket.send(data)
   }
