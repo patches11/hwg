@@ -19,6 +19,41 @@ class Webservice(implicit system: ActorSystem) extends Directives {
 
   implicit val materializer = ActorMaterializer()
 
+  private val streamedFlow = Flow[Message]
+    .collect {
+      case BinaryMessage.Streamed(dataStream) =>
+        dataStream
+          .completionTimeout(2 seconds)
+          .runFold(ByteString.empty)(_ ++ _)
+    }
+    .mapAsync(parallelism = 3)(identity)
+
+  private val strictFlow = Flow[Message]
+    .collect {
+      case BinaryMessage.Strict(bytes) =>
+        bytes
+    }
+
+  private val splitFlow = Flow.fromGraph(GraphDSL.create() { implicit builder =>
+    import GraphDSL.Implicits._
+
+    val split = builder.add(Partition(2, portMapper))
+    val merge = builder.add(Merge[ByteString](2))
+
+    split.out(0) ~> streamedFlow ~> merge.in(0)
+    split.out(1) ~> strictFlow ~> merge.in(1)
+
+    FlowShape(split.in, merge.out)
+  })
+
+  private def portMapper(value: Message): Int = {
+    value match {
+      case BinaryMessage.Streamed(_) => 0
+      case BinaryMessage.Strict(_) => 1
+      case _ => 1
+    }
+  }
+
   def route =
     get {
       pathSingleSlash {
@@ -37,34 +72,10 @@ class Webservice(implicit system: ActorSystem) extends Directives {
   def websocketFlow(): Flow[Message, Message, Any] = {
     val shipFlow = ShipFlow.create(system, systemMaster)
 
-    val streamedFlow = Flow[Message].collect {
-      case BinaryMessage.Streamed(dataStream) =>
-        dataStream
-          .completionTimeout(2 seconds)
-          .runFold(ByteString.empty)(_ ++ _)
-    }.mapAsync(parallelism = 3)(identity)
-
-    val strictFlow = Flow[Message]
-      .collect {
-        case BinaryMessage.Strict(bytes) =>
-          bytes
+    splitFlow
+      .map { bytes =>
+        Unpickle[Protocol.Message].tryFromBytes(bytes.toByteBuffer)
       }
-
-    val splitter = Flow.fromGraph(GraphDSL.create() { implicit builder =>
-      import GraphDSL.Implicits._
-
-      val split = builder.add(Partition(2, portMapper))
-      val merge = builder.add(Merge[ByteString](2))
-
-      split.out(0) ~> streamedFlow ~> merge.in(0)
-      split.out(1) ~> strictFlow ~> merge.in(1)
-
-      FlowShape(split.in, merge.out)
-    })
-
-    splitter.map { bytes =>
-      Unpickle[Protocol.Message].tryFromBytes(bytes.toByteBuffer)
-    }
       .collect {
         case Success(msg) => msg
       }
@@ -74,14 +85,6 @@ class Webservice(implicit system: ActorSystem) extends Directives {
         BinaryMessage.Strict(ByteString.fromByteBuffer(pickled))
       }
       .via(reportErrorsFlow)
-  }
-
-  private def portMapper(value: Message): Int = {
-    value match {
-      case BinaryMessage.Streamed(_) => 0
-      case BinaryMessage.Strict(_) => 1
-      case _ => 1
-    }
   }
 
   def reportErrorsFlow[T]: Flow[T, T, Any] =

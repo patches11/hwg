@@ -38,23 +38,18 @@ object ActorFlow {
         val flowActor = context.watch(context.actorOf(props(outActor), "flowActor"))
 
         def receive = {
-          case Status.Success(_) =>
-            log.info("Success")
-            flowActor ! PoisonPill
+          case Status.Success(_) => flowActor ! PoisonPill
           case Status.Failure(e) =>
-            log.info("Failure")
-            log.info(e.getMessage)
+            log.warning(s"ActorFlow Failure ${e.getMessage}")
             e.printStackTrace()
             flowActor ! PoisonPill
-          case Terminated(_) =>
-            log.info("Terminated")
-            context.stop(self)
+          case Terminated(_) => context.stop(self)
           case other => flowActor ! other
         }
 
-        //override def supervisorStrategy = OneForOneStrategy() {
-        //  case _ => SupervisorStrategy.Stop
-        //}
+        override def supervisorStrategy = OneForOneStrategy() {
+          case _ => SupervisorStrategy.Stop
+        }
       })), Status.Success(())),
       Source.fromPublisher(publisher)
     )
