@@ -36,7 +36,6 @@ class WebsocketClient(val limit: Int = 1000) {
               t.copy(receiveTime = new Date().getTime.toLong)
             case a => a
           }
-          println(wsMsg)
           subscriber.onNext(wsMsg).syncOnStopOrFailure((_) => c.cancel())
       }
     }

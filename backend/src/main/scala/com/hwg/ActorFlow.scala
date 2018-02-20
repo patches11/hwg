@@ -40,8 +40,8 @@ object ActorFlow {
         def receive = {
           case Status.Success(_) => flowActor ! PoisonPill
           case Status.Failure(e) =>
-            log.warning(s"ActorFlow Failure ${e.getMessage}")
-            e.printStackTrace()
+            log.error(s"ActorFlow Failure ${e.getMessage}")
+            log.error(e.getStackTrace.mkString("\n"))
             flowActor ! PoisonPill
           case Terminated(_) => context.stop(self)
           case other => flowActor ! other
