@@ -24,7 +24,6 @@ class Time(val client: WebsocketClient) {
       case TimeMessage(sendTime, serverTime, receiveTime) =>
         val latency = receiveTime - sendTime
         val delta = receiveTime - serverTime + latency / 2
-        println(s"latency $latency")
 
         val sample = TimeDelta(latency, delta)
 
@@ -58,7 +57,6 @@ class Time(val client: WebsocketClient) {
       Stats.mean(filtered).foreach(delta => setDelta(delta.toLong))
     }
 
-    println(s"currentDelta $currentDelta")
   }
 
   private def setDelta(delta: Long): Unit = {
@@ -75,8 +73,8 @@ class Time(val client: WebsocketClient) {
   private def nextReq: Long = {
     samples.length match {
       case 0 =>
-        10
-      case n if n < obsLimit * 2 =>
+        100
+      case n if n < obsLimit =>
         (Math.random() * 1000 + 1000).toLong
       case _ =>
         (Math.random() * 5000 + 10000).toLong
