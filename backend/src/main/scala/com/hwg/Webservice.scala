@@ -16,6 +16,7 @@ import scala.util.{Failure, Success}
 class Webservice(implicit system: ActorSystem) extends Directives {
 
   val systemMaster = system.actorOf(Props(new SystemMaster))
+  val chatMaster   = system.actorOf(Props(new SystemChat))
 
   implicit val materializer = ActorMaterializer()
 
@@ -70,7 +71,7 @@ class Webservice(implicit system: ActorSystem) extends Directives {
       getFromResourceDirectory("web")
 
   def websocketFlow(): Flow[Message, Message, Any] = {
-    val shipFlow = ShipFlow.create(system, systemMaster)
+    val shipFlow = ShipFlow.create(system, systemMaster, chatMaster)
 
     splitFlow
       .map { bytes =>

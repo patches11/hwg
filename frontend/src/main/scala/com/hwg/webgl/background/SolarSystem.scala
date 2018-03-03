@@ -15,11 +15,11 @@ case class SolarSystem(seed: Long, gl: WebGLRenderingContext) {
   import com.hwg.util.VecmathConverters._
   import com.hwg.util.TypedArrayConverters._
 
-  val ambientColor = Float32Array(js.Array(0.1f, 0.5f, 0.7f))
+  val ambientColor = Float32Array(js.Array(0.1f, 0.5f, 0.4f))
 
   val lightDirection: Vec3 = Vec3(1, 1, -1)
 
-  val directionalLightColor = Float32Array(js.Array(0.5f, 0.5f, 0f))
+  val directionalLightColor = Float32Array(js.Array(0.0f, 0.1f, 0.1f))
 
   // BG Config
   val backgroundSize: Int = 2048
@@ -30,6 +30,9 @@ case class SolarSystem(seed: Long, gl: WebGLRenderingContext) {
   val maxIterations: Int = 25000
 
   private val moon = TextureInfo.createFromUrl(gl, "/img/moon.gif")
+  private val smokeTex = TextureInfo.createFromUrl(gl, "/img/smoke.png")
+
+  private val smoke = Smoke(smokeTex, gl)
 
   private val starData = StarField.generateTexture(this.backgroundSize, this.backgroundSize, this.pointsNear, this.minRadius, this.maxRadius,
     (x: Double, y: Double) => { PerlinNoise.noise(x / this.backgroundSize * this.perlinMod, y / this.backgroundSize * this.perlinMod,
@@ -37,9 +40,9 @@ case class SolarSystem(seed: Long, gl: WebGLRenderingContext) {
 
   private val starFieldTex = TextureInfo.createFromTex(gl, backgroundSize, backgroundSize, Uint8Array(starData))
 
-  val moonModel = SphereModel(moon, gl)
+  val moonModel = SphereModel(moon, gl, 3)
 
-  val planets: js.Array[Planet]= js.Array(Planet(moonModel, 0, 0))
+  val planets: js.Array[Planet]= js.Array(Planet(moonModel, 0, 0, 3))
   val starField: Model = TwoDModel(starFieldTex, gl, 25*this.backgroundSize, 25*this.backgroundSize)
 
   def draw(matrixStack: MatrixStack, thisShip: Ship, time: Long, program: HwgWebGLProgram): Unit = {
@@ -74,7 +77,9 @@ case class SolarSystem(seed: Long, gl: WebGLRenderingContext) {
       matrixStack.restore()
     }
 
+    smoke.draw(program, matrixStack, thisShip.x / 100, thisShip.y / 100, time)
+
   }
 }
 
-case class Planet(model: Model, x: Long, y: Long)
+case class Planet(model: Model, x: Long, y: Long, size: Double)

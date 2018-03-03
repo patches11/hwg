@@ -14,7 +14,7 @@ case class Ship(var x: Double = 0, var y: Double = 0, var speed: Double = 0,
   val firePauseTime: Int = 100
 
   val speedMax = 50
-  val oDiff = 0.1
+  val oDiff = 0.075
 
   def updateCommands(commandShip: Ship): Ship = {
     accelerating = commandShip.accelerating

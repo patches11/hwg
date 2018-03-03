@@ -77,10 +77,11 @@ case class SphereModel(texture: TextureInfo, gl: WebGLRenderingContext, radius: 
   val moonVertexPositionBuffer: BufferWrapper = BufferWrapper(moonVertexPositionB, 3, vertexPositionData.length / 3)
   val moonVertexIndexBuffer: BufferWrapper = BufferWrapper(moonVertexIndexB, 1, indexData.length)
 
-  def draw(program: HwgWebGLProgram, matrixStack: MatrixStack, x: Double, y: Double): Unit = {
+  def draw(program: HwgWebGLProgram, matrixStack: MatrixStack, x: Double, y: Double, tint: js.Array[Double] = js.Array(1, 1, 1, 1)): Unit = {
     gl.activeTexture(TEXTURE0)
     gl.bindTexture(TEXTURE_2D, this.texture.texture)
     gl.uniform1i(program.samplerUniform, 0)
+    gl.uniform4fv(program.colorUniform, Float32Array(tint))
 
     gl.bindBuffer(ARRAY_BUFFER, this.moonVertexPositionBuffer.buffer)
     gl.vertexAttribPointer(program.positionLocation, this.moonVertexPositionBuffer.itemSize, FLOAT, normalized = false, 0, 0)

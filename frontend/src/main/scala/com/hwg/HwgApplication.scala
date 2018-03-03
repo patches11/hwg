@@ -3,15 +3,16 @@ package com.hwg
 import com.hwg.models.Ship
 import com.hwg.util.{MatrixStack, Time}
 import com.hwg.webgl.model.TwoDModel
-import com.hwg.webgl.background.SolarSystem
-import com.hwg.webgl.{HwgWebGLProgram, TextureLoader}
+import com.hwg.webgl.background.{Smoke, SolarSystem}
+import com.hwg.webgl.{HwgWebGLProgram, TextureInfo, TextureLoader}
 import monix.reactive.Observable
 import org.scalajs.dom.KeyboardEvent
 import org.scalajs.dom.raw.{WebGLRenderingContext, WheelEvent}
 import Protocol.{Dead, Initialized, State, ThisShip}
-import scala.scalajs.js
-import js.Dynamic.{ global => g }
+import com.hwg.gui.{Chat, Radar}
 
+import scala.scalajs.js
+import js.Dynamic.{global => g}
 import scala.collection.mutable
 import scala.scalajs.js
 
@@ -20,8 +21,11 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
   import com.hwg.models.ShipControls._
   import monix.execution.Scheduler.Implicits.global
 
+  gl.pixelStorei(UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1)
+
   val client = new WebsocketClient()
   val time = new Time(client)
+  val chat = new Chat(client, 0)
   val textureLoader = new TextureLoader(gl)
 
   val thisShip: Ship = Ship()
@@ -43,6 +47,8 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
   var lastReceivedState: Option[State] = None
 
   js.timers.setTimeout(tickInterval)(tick)
+
+  val radar = new Radar()
 
   val draw: () => Unit = () => {
     val timeNow = time.now
@@ -72,7 +78,13 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
         matrixStack.restore();
       }
     }
+
+    radar.draw(id, thisShip, ships, system.planets)
+
+    program.setCamera(thisShip.x / 100, thisShip.y / 100)
   }
+
+  val program = HwgWebGLProgram(gl, draw)
 
   client.getObservable.collect {
     case Initialized(lId) =>
@@ -84,8 +96,6 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
       if (id.contains(dId))
         g.alert("Dead!!!!!")
   }.subscribe()
-
-  val program = HwgWebGLProgram(gl, draw)
 
   wheelEvents.foreach { we =>
     program.zoom(we.deltaY)

@@ -6,11 +6,13 @@ object Shaders {
 varying highp vec2 vTextureCoord;
 varying highp vec3 vLightWeighting;
 
+uniform highp vec4 uColor;
+
 uniform sampler2D uSampler;
 
 void main(void) {
   highp vec4 texelColor = texture2D(uSampler, vTextureCoord);
-  gl_FragColor = vec4(texelColor.rgb * vLightWeighting, texelColor.a);
+  gl_FragColor = vec4(texelColor.rgb * vLightWeighting, texelColor.a) * uColor;
 }
 """
 
@@ -34,7 +36,7 @@ varying highp vec2 vTextureCoord;
 varying highp vec3 vLightWeighting;
 
 void main(void) {
-gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+  gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
   vTextureCoord = aTextureCoord;
 
   highp vec4 transformedNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);

@@ -31,17 +31,20 @@ case class HwgWebGLProgram(gl: WebGLRenderingContext, draw: () => Unit) {
 
   val samplerUniform: WebGLUniformLocation = gl.getUniformLocation(program, "uSampler")
 
+  val colorUniform: WebGLUniformLocation = gl.getUniformLocation(program, "uColor")
+
   // Fill BG
   gl.clearColor(0.0, 0.0, 0.0, 1.0)
 
   // Enable Alpha
-  gl.blendFunc(SRC_ALPHA, ONE_MINUS_SRC_ALPHA)
+  gl.blendFunc(ONE, ONE_MINUS_SRC_ALPHA)
   gl.enable(BLEND)
 
   gl.enable(DEPTH_TEST) // Enable depth testing
-  gl.depthFunc(LEQUAL) // Near things obscure far things
+  gl.depthFunc(LESS) // Near things obscure far things
 
   gl.clear(COLOR_BUFFER_BIT | DEPTH_BUFFER_BIT)
+  gl.pixelStorei(UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1)
 
   private val updater: scalajs.js.Function1[Double, _] = {
     (_: Double) => {
@@ -64,8 +67,6 @@ case class HwgWebGLProgram(gl: WebGLRenderingContext, draw: () => Unit) {
 
   def setMatrixUniforms(mvMatrix: Mat4, x: Double, y: Double): Unit = {
     gl.uniformMatrix4fv(moveMatrix, transpose = false, mvMatrix.toJsArrayT)
-
-    this.setCamera(x, y)
 
     val normalMatrix = mvMatrix.dup
     normalMatrix.invert()

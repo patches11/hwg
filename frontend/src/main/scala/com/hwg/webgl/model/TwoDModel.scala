@@ -41,11 +41,12 @@ case class TwoDModel(texture: TextureInfo, gl: WebGLRenderingContext, width: Int
   )
   gl.bufferData(ARRAY_BUFFER, Float32Array(texcoords), STATIC_DRAW)
 
-  def draw(program: HwgWebGLProgram, matrixStack: MatrixStack, x: Double, y: Double): Unit = {
+  def draw(program: HwgWebGLProgram, matrixStack: MatrixStack, x: Double, y: Double, tint: js.Array[Double] = js.Array(1, 1, 1, 1)): Unit = {
 
     gl.activeTexture(TEXTURE0)
     gl.bindTexture(TEXTURE_2D, this.texture.texture)
     gl.uniform1i(program.samplerUniform, 0)
+    gl.uniform4fv(program.colorUniform, Float32Array(tint))
 
     gl.bindBuffer(ARRAY_BUFFER, this.normalBuffer)
     gl.vertexAttribPointer(program.normalLocation, 3, FLOAT, normalized = false, 0, 0)

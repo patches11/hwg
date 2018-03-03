@@ -13,19 +13,19 @@ object ShipFlow {
   private val overflowStrategy = OverflowStrategy.dropHead
   private var id = 0
 
-  def create(system: ActorSystem, systemMaster: ActorRef)(implicit actorRefFactory: ActorRefFactory, mat: akka.stream.Materializer): Flow[Protocol.Message, Protocol.Message, Any] = {
+  def create(system: ActorSystem, systemMaster: ActorRef, chatMaster: ActorRef)(implicit actorRefFactory: ActorRefFactory, mat: akka.stream.Materializer): Flow[Protocol.Message, Protocol.Message, Any] = {
     ActorFlow.actorRef[Protocol.Message, Protocol.Message]({ out =>
-      props(out, systemMaster)
+      props(out, systemMaster, chatMaster)
     }, bufferSize, overflowStrategy)
   }
 
-  def props(out: ActorRef, systemMaster: ActorRef): Props = {
-    val props = Props(new ShipActor(out, id, systemMaster))
+  def props(out: ActorRef, systemMaster: ActorRef, chatMaster: ActorRef): Props = {
+    val props = Props(new ShipActor(out, id, systemMaster, chatMaster))
     id = id + 1
     props
   }
 
-  private class ShipActor(var output: ActorRef, id: Int, systemMaster: ActorRef) extends Actor with ActorLogging {
+  private class ShipActor(var output: ActorRef, id: Int, systemMaster: ActorRef, chatMaster: ActorRef) extends Actor with ActorLogging {
 
     import context._
 
@@ -33,11 +33,13 @@ object ShipFlow {
 
     system.eventStream.subscribe(self, classOf[State])
     system.eventStream.subscribe(self, classOf[Dead])
+    system.eventStream.subscribe(self, classOf[ReceiveMessage])
 
 
     override def preStart(): Unit = {
       super.preStart()
       output ! Initialized(id)
+      output ! ReceiveMessage("System", clock.millis(), "Welcome to System Butt")
     }
 
     def receive: Receive = {
@@ -45,6 +47,10 @@ object ShipFlow {
         output ! t.copy(serverTime = clock.millis())
       case ThisShip(ship) =>
         systemMaster ! ShipUpdate(id, ship)
+      case SendMessage(text) =>
+        chatMaster ! InternalMessage(id, text)
+      case rm: ReceiveMessage =>
+        output ! rm
       case su: State =>
         output ! su
       case dead: Dead =>

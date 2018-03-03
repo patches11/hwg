@@ -4,15 +4,17 @@
 
 ### Short-Term
 
-* Ambient Nebula Effects ( https://codepen.io/teolitto/pen/KwOVvL )
 * Minimap
 * Chat
 * Planet Locations
 * Hitbox detection
 * Health
 * Netcode fixes
+* Reconnect
 
 ### Long Term
 
 * Zones
 * Different Weapons
+* State Database
+* User Login etc.
