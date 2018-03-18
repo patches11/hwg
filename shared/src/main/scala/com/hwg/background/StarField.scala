@@ -1,6 +1,6 @@
 package com.hwg.background
 
-import java.util.Date
+import java.awt.Color
 
 import com.hwg.util.{MathExt, Point, RandomQueue}
 
@@ -12,23 +12,16 @@ object StarField {
   type Grid = Array[ArrayBuffer[Point]]
 
   def generateTexture(width: Int, height: Int, newPointsCount: Int, minRadius: Double, maxRadius: Double,
-                      minDistFunc: (Double, Double) => Double, random: Random, maxIterations: Int): Array[Short] = {
-    val data = new Array[Short](width * height * 4)
+                      minDistFunc: (Double, Double) => Double, random: Random, maxIterations: Int): Array[Color] = {
+    val data = Array.fill[Color](width * height)(Color.BLACK)
     val brightness = 50
-
-    val s = new Date().getTime
 
     generate(width, height, minRadius, maxRadius, minDistFunc, newPointsCount, random, maxIterations).foreach((point) => {
       val index = (Math.floor(point.x) + Math.floor(point.y) * width).toInt
-      val c = Math.round(255 * Math.log(1 - random.nextFloat()) * -brightness).toShort
+      val c = (random.nextInt(255 - brightness) + brightness).toShort
 
-      data(index * 4 + 0) = 255
-      data(index * 4 + 1) = 255
-      data(index * 4 + 2) = 255
-      data(index * 4 + 3) = c
+      data(index) = new Color(255, 255, 255, c)
     })
-
-    println(s"StarField.generate took: ${new Date().getTime - s}")
 
     data
   }

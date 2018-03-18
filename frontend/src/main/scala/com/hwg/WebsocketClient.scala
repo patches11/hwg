@@ -11,6 +11,7 @@ import monix.reactive.OverflowStrategy.DropOld
 import monix.reactive.subjects.PublishSubject
 import org.scalajs.dom
 import org.scalajs.dom.raw.{Event, MessageEvent, WebSocket}
+import slogging.LazyLogging
 
 import scala.language.implicitConversions
 import scala.scalajs.js
@@ -18,7 +19,7 @@ import scala.scalajs.js.Date
 import scala.scalajs.js.typedarray.TypedArrayBufferOps._
 import scala.scalajs.js.typedarray.{ArrayBuffer, TypedArrayBuffer}
 
-class WebsocketClient(val limit: Int = 1000) {
+class WebsocketClient(val limit: Int = 1000) extends LazyLogging {
 
   import monix.execution.Scheduler.Implicits.global
 
@@ -42,7 +43,7 @@ class WebsocketClient(val limit: Int = 1000) {
           }
           rcount = rcount + 1
           if (rcount % 60 == 0)
-            println(wsMsg)
+            logger.info(wsMsg.toString)
           subscriber.onNext(wsMsg).syncOnStopOrFailure((_) => c.cancel())
       }
     }
@@ -90,7 +91,7 @@ class WebsocketClient(val limit: Int = 1000) {
   def send(validMessage: Message): Unit = {
     scount = scount + 1
     if (scount % 60 == 0)
-      println(validMessage)
+      logger.info(validMessage.toString)
     val data = Pickle.intoBytes(validMessage)
     websocket.send(data)
   }

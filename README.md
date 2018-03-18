@@ -4,13 +4,14 @@
 
 ### Short-Term
 
-* Minimap
-* Chat
 * Planet Locations
 * Hitbox detection
 * Health
 * Netcode fixes
 * Reconnect
+* Space Shit so you can tell you are moving
+* Name
+* Logo & Icon etc
 
 ### Long Term
 
@@ -18,3 +19,7 @@
 * Different Weapons
 * State Database
 * User Login etc.
+
+### Done For Now
+* Minimap
+* Chat

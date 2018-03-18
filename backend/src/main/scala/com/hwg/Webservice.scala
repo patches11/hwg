@@ -7,13 +7,14 @@ import akka.stream.scaladsl.{Flow, GraphDSL, Merge, Partition}
 import akka.stream.{ActorMaterializer, FlowShape}
 import akka.util.ByteString
 import boopickle.Default._
+import slogging.LazyLogging
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.language.postfixOps
 import scala.util.{Failure, Success}
 
-class Webservice(implicit system: ActorSystem) extends Directives {
+class Webservice(implicit system: ActorSystem) extends Directives with LazyLogging {
 
   val systemMaster = system.actorOf(Props(new SystemMaster))
   val chatMaster   = system.actorOf(Props(new SystemChat))
@@ -92,8 +93,8 @@ class Webservice(implicit system: ActorSystem) extends Directives {
     Flow[T]
       .watchTermination()((_, f) => f.onComplete {
         case Failure(cause) =>
-          println(s"WS stream failed with $cause")
+          logger.warn(s"WS stream failed with $cause")
         case _ => // ignore regular completion
-          println("WS Completed")
+          logger.debug("WS Completed")
       })
 }

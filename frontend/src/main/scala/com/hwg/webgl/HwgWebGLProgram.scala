@@ -3,8 +3,9 @@ package com.hwg.webgl
 import org.scalajs.dom
 import org.scalajs.dom.raw.{WebGLProgram, WebGLRenderingContext, WebGLShader, WebGLUniformLocation}
 import scryetek.vecmath.Mat4
+import slogging.LazyLogging
 
-case class HwgWebGLProgram(gl: WebGLRenderingContext, draw: () => Unit) {
+case class HwgWebGLProgram(gl: WebGLRenderingContext, draw: () => Unit) extends LazyLogging {
 
   import WebGLRenderingContext._
   import com.hwg.util.VecmathConverters._
@@ -97,7 +98,7 @@ case class HwgWebGLProgram(gl: WebGLRenderingContext, draw: () => Unit) {
     gl.linkProgram(shaderProgram)
 
     if (!gl.getProgramParameter(shaderProgram, WebGLRenderingContext.LINK_STATUS).asInstanceOf[Boolean]) {
-      println("Unable to initialize the shader program: " + gl.getProgramInfoLog(shaderProgram))
+      logger.error("Unable to initialize the shader program: " + gl.getProgramInfoLog(shaderProgram))
       // TODO Throw Error
     }
 
@@ -112,7 +113,7 @@ case class HwgWebGLProgram(gl: WebGLRenderingContext, draw: () => Unit) {
     gl.compileShader(shader)
 
     if (!gl.getShaderParameter(shader, WebGLRenderingContext.COMPILE_STATUS).asInstanceOf[Boolean]) {
-      println("An error occurred compiling the shaders: " + gl.getShaderInfoLog(shader))
+      logger.error("An error occurred compiling the shaders: " + gl.getShaderInfoLog(shader))
       gl.deleteShader(shader)
       //TODO Throw Error
     }

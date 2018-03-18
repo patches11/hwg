@@ -32,4 +32,54 @@ object MathExt {
 
     Math.sqrt(xDiff * xDiff + yDiff * yDiff)
   }
+
+  def easeInOutCustom(t: Double, b: Double, c: Double, d: Double, p: Double): Double = {
+    val tint = t / d * 2
+    if (tint < 1)
+      c / 2 * Math.pow(t, p) + b
+    else {
+      val t3 = tint - 2
+      c / 2 * (Math.pow(t3, p) + 2) + b
+    }
+  }
+
+  def easeInOutQuint(t: Double, b: Double, c: Double, d: Double): Double = {
+    val tint = t / d * 2
+    if (tint < 1)
+      c / 2 * t * t * t * t * t + b
+    else {
+      val t3 = tint - 2
+      c / 2 * (t3 * t3 * t3 * t3 * t3 + 2) + b
+    }
+  }
+
+  def easeInOutQuart(t: Double, b: Double, c: Double, d: Double): Double = {
+    val tint = t / d * 2
+    if (tint < 1)
+      c / 2 * t * t * t * t + b
+    else {
+      val t3 = tint - 2
+      c / 2 * (t3 * t3 * t3 * t3 + 2) + b
+    }
+  }
+
+  def easeInOutCubic(t: Double, b: Double, c: Double, d: Double): Double = {
+    val tint = t / d * 2
+    if (tint < 1)
+      c / 2 * t * t * t + b
+    else {
+      val t3 = tint - 2
+      c / 2 * (t3 * t3 * t3 + 2) + b
+    }
+  }
+
+  def easeInOutQuad(t: Double, b: Double, c: Double, d: Double): Double = {
+    val tint = t / d * 2
+    if (tint < 1)
+      c / 2 * t * t + b
+    else {
+      val t3 = tint - 2
+      c / 2 * (t3 * t3 + 2) + b
+    }
+  }
 }

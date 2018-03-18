@@ -37,6 +37,6 @@ case class SmokeOptions(
                         tint: (Double, Double, Double, Double) = (3.0, 0.1, 0.1, 0.1),
                         scale: Double = 20,
                         spread: (Double, Double, Double) = (30, 30, 4),
-                        center: (Double, Double, Double) = (0, 0, -35),
+                        center: (Double, Double, Double) = (0, 0, -40),
                         elements: Int = 5
                        )

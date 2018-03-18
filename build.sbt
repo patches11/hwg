@@ -41,7 +41,8 @@ lazy val frontend =
         "org.scala-js" %%% "scalajs-dom" % scalaJsDomV,
         "io.suzaku" %%% "boopickle" % boopickleV,
         "com.lihaoyi" %%% "utest" % utestV % "test",
-        "io.monix" %%% "monix" % "2.2.1"
+        "io.monix" %%% "monix" % "2.2.1",
+        "biz.enef" %%% "slogging" % "0.6.1"
       )
     )
     .dependsOn(sharedJs, vecmath)
@@ -55,14 +56,17 @@ lazy val backend =
         "com.typesafe.akka" %% "akka-stream" % akkaV % "runtime",
         "com.typesafe.akka" %% "akka-http" % akkaHttpV,
         "org.specs2" %% "specs2-core" % specs2V % "test",
-        "io.suzaku" %% "boopickle" % boopickleV
+        "io.suzaku" %% "boopickle" % boopickleV,
+        "biz.enef" %% "slogging" % "0.6.1"
       ),
       resourceGenerators in Compile += Def.task {
         val f1 = (fastOptJS in Compile in frontend).value
         val f2 = (packageScalaJSLauncher in Compile in frontend).value
         Seq(f1.data, f2.data)
       }.taskValue,
-      watchSources ++= (watchSources in frontend).value
+      mainClass in (Compile, run) := Some("com.hwg.Hwg"),
+      watchSources ++= (watchSources in frontend).value,
+      TaskKey[Unit]("generate") := (runMain in Compile).toTask(" com.hwg.generate.Generate").value
     )
     .dependsOn(sharedJvm)
 

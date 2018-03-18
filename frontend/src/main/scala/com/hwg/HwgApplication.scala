@@ -3,8 +3,8 @@ package com.hwg
 import com.hwg.models.Ship
 import com.hwg.util.{MatrixStack, Time}
 import com.hwg.webgl.model.TwoDModel
-import com.hwg.webgl.background.{Smoke, SolarSystem}
-import com.hwg.webgl.{HwgWebGLProgram, TextureInfo, TextureLoader}
+import com.hwg.webgl.background.{SolarSystem}
+import com.hwg.webgl.{HwgWebGLProgram, TextureLoader}
 import monix.reactive.Observable
 import org.scalajs.dom.KeyboardEvent
 import org.scalajs.dom.raw.{WebGLRenderingContext, WheelEvent}
@@ -61,19 +61,19 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
     ships.foreach { case (_, ship) =>
 
       matrixStack.save()
-      matrixStack.translate(ship.x / 100, ship.y / 100, -20)
+      matrixStack.translate(ship.x, ship.y, -20)
       matrixStack.rotateZ(ship.orientation)
 
-      shipModel.draw(program, matrixStack, thisShip.x / 100, thisShip.y / 100)
+      shipModel.draw(program, matrixStack, thisShip.x, thisShip.y)
 
       matrixStack.restore()
 
       ship.projectiles.foreach { projectile =>
         matrixStack.save()
-        matrixStack.translate(projectile.x / 100, projectile.y / 100, -20)
+        matrixStack.translate(projectile.x, projectile.y, -20)
         matrixStack.rotateZ(projectile.orientation)
 
-        laserModel.draw(program, matrixStack, thisShip.x / 100, thisShip.y / 100)
+        laserModel.draw(program, matrixStack, thisShip.x, thisShip.y)
 
         matrixStack.restore();
       }
@@ -81,7 +81,7 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
 
     radar.draw(id, thisShip, ships, system.planets)
 
-    program.setCamera(thisShip.x / 100, thisShip.y / 100)
+    program.setCamera(thisShip.x, thisShip.y)
   }
 
   val program = HwgWebGLProgram(gl, draw)

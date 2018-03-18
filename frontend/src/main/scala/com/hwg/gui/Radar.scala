@@ -7,7 +7,6 @@ import org.scalajs.dom
 import org.scalajs.dom.{html, raw}
 
 import scala.collection.mutable
-import scala.scalajs.js.Array
 
 class Radar() {
 
@@ -27,11 +26,11 @@ class Radar() {
   val shipSize = (uiScale * 2).toInt
 
   dom.document.body.appendChild(radar)
-  val range = 50
+  val range = 1
   val outlineWidth = uiScale * 4
 
 
-  def draw(idOption: Option[Int], thisShip: Ship, ships: mutable.Map[Int, Ship], planets: Array[Planet]): Unit = {
+  def draw(idOption: Option[Int], thisShip: Ship, ships: mutable.Map[Int, Ship], planets: scala.Array[Planet]): Unit = {
     context.clearRect(0, 0, size, size)
 
     // Base
@@ -60,12 +59,7 @@ class Radar() {
           context.arc(size / 2 - (thisShip.x - planet.x) / range, size / 2 + (thisShip.y - planet.y) / range, planet.size * 2, 0, Math.PI * 2)
           context.stroke()
         } else {
-          context.lineWidth = uiScale * 2
-          val angle = MathExt.arctan(thisShip.x - planet.x, thisShip.y - planet.y)
-          context.beginPath()
-          context.moveTo(size / 2 - Math.cos(angle) * (size / 2 + 1), size / 2 + Math.sin(angle) * (size / 2 + 1))
-          context.lineTo(size / 2 - Math.cos(angle) * (size / 2 - uiScale * 6), size / 2 + Math.sin(angle) * (size / 2 - uiScale * 6))
-          context.stroke()
+          this.sideLine(thisShip, planet.x, planet.y)
         }
       }
 
@@ -75,11 +69,23 @@ class Radar() {
       ships.foreach { case (sid, ship) =>
         if (id != sid) {
           val distance = MathExt.distance(thisShip.x, thisShip.y, ship.x, ship.y) / range
-          context.fillRect(size / 2 - shipSize / 2 - (thisShip.x - ship.x) / range, size / 2 - shipSize / 2 + (thisShip.y - ship.y) / range, shipSize, shipSize)
-          // TODO : Finish
+          if (distance < size / 2 - 2) {
+            context.fillRect(size / 2 - shipSize / 2 - (thisShip.x - ship.x) / range, size / 2 - shipSize / 2 + (thisShip.y - ship.y) / range, shipSize, shipSize)
+          } else {
+            this.sideLine(thisShip, ship.x, ship.y)
+          }
         }
       }
     }
+  }
+
+  private def sideLine(thisShip: Ship, x: Double, y: Double): Unit = {
+    context.lineWidth = uiScale * 2
+    val angle = MathExt.arctan(thisShip.x - x, thisShip.y - y)
+    context.beginPath()
+    context.moveTo(size / 2 - Math.cos(angle) * (size / 2 + 1), size / 2 + Math.sin(angle) * (size / 2 + 1))
+    context.lineTo(size / 2 - Math.cos(angle) * (size / 2 - uiScale * 6), size / 2 + Math.sin(angle) * (size / 2 - uiScale * 6))
+    context.stroke()
   }
 
   case object Colors {

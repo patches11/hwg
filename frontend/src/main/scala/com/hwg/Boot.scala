@@ -9,7 +9,7 @@ import org.scalajs.dom.raw.WheelEvent
 import org.scalajs.dom.{KeyboardEvent, html, raw}
 
 import scala.scalajs.js
-
+import slogging._
 object Boot extends js.JSApp {
 
   import monix.execution.Scheduler.Implicits.global
@@ -18,6 +18,8 @@ object Boot extends js.JSApp {
   private val canvas = dom.document.getElementById("canvas").asInstanceOf[html.Canvas]
 
   def main(): Unit = {
+    LoggerConfig.factory = ConsoleLoggerFactory()
+
     val gl: raw.WebGLRenderingContext = canvas.getContext("webgl", {}).asInstanceOf[raw.WebGLRenderingContext]
 
     val keyboardEvents = keyboardEventListener().groupBy(_.keyCode).map(_.distinctUntilChangedByKey(_.`type`)).merge

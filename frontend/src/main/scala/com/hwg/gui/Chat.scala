@@ -4,9 +4,8 @@ import com.hwg.Protocol.{ReceiveMessage, SendMessage}
 import com.hwg.WebsocketClient
 import com.hwg.util.LimitStack
 import org.scalajs.dom
-import org.scalajs.dom.{Event, KeyboardEvent, Node, html}
+import org.scalajs.dom.{Event, Node, html}
 
-import scala.scalajs.js
 import scala.scalajs.js.Date
 
 class Chat(val client: WebsocketClient, val id: Int) {

@@ -13,7 +13,7 @@ case class Ship(var x: Double = 0, var y: Double = 0, var speed: Double = 0,
   var firePause: Double = 0
   val firePauseTime: Int = 100
 
-  val speedMax = 50
+  val speedMax = 1.0
   val oDiff = 0.075
 
   def updateCommands(commandShip: Ship): Ship = {
@@ -27,8 +27,8 @@ case class Ship(var x: Double = 0, var y: Double = 0, var speed: Double = 0,
     super.tick(deltaTime)
 
     if (accelerating) {
-      val nVX = vX - 5 * Math.sin(orientation) * deltaTime / 100
-      val nVY = vY + 5 * Math.cos(orientation) * deltaTime / 100
+      val nVX = vX - 5 * Math.sin(orientation) * deltaTime / 10000
+      val nVY = vY + 5 * Math.cos(orientation) * deltaTime / 10000
 
       speed = Math.min(Math.sqrt(nVX * nVX + nVY * nVY), speedMax)
       speedOrientation = MathExt.arctan(nVY, -nVX)
@@ -37,9 +37,9 @@ case class Ship(var x: Double = 0, var y: Double = 0, var speed: Double = 0,
     if (firing && firePause <= 0) {
       firePause = firePauseTime
       projectiles.append(Projectile(
-        x - 20 * Math.sin(orientation),
-        y + 20 * Math.cos(orientation),
-        100,
+        x - 0.2 * Math.sin(orientation),
+        y + 0.2 * Math.cos(orientation),
+        1,
         orientation,
         orientation))
     } else {
