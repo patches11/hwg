@@ -5,36 +5,64 @@ import java.io.File
 import javax.imageio.ImageIO
 
 import com.hwg.background.{PlanetTexture, StarField, TextureOptions}
+import com.hwg.universe.SystemConfig
 import com.hwg.util.Color
 import com.hwg.util.noise.{CloudyNoise, SimplexNoise}
+import slogging.LazyLogging
 
 import scala.util.Random
-import slogging.LazyLogging
+
+import java.io.File
+
 
 object GenSystem extends LazyLogging {
 
-  def generate(seed: Long, options: SystemOptions = SystemOptions()): Unit = {
-    generateBackground(seed, options)
+  val baseDir = "./backend/src/main/resources/web/"
 
-    val textureOptions = TextureOptions(
-      1600,
-      seed,
-      grass = Color(0, 200, 20),
-      desert = Color(222, 184, 135),
-      sea = Color(0, 20, 200)
-    )
-
-    generatePlanets(seed, textureOptions)
+  def makePath(rest: String) = {
+    baseDir + rest
   }
 
-  def generateBackground(seed: Long, options: SystemOptions): Unit = {
-    val random = new Random(seed)
+  def makeFile(rest: String) = {
+    new File(baseDir + rest)
+  }
+
+  def setup(options: SystemOptions): Unit = {
+    val dir = new File(makePath(options.config.dir))
+
+    dir.mkdirs
+
+    Option(dir.listFiles).map(_.toList).getOrElse(Nil).foreach(_.delete())
+  }
+
+  def generate(options: SystemOptions): Unit = {
+    setup(options)
+
+    generateBackground(options)
+
+    options.config.planets.zipWithIndex.foreach { case (planetConfig, i) =>
+      val textureOptions = TextureOptions(
+        planetConfig,
+        1600,
+        options.config.seed * 7 * (i + 1),
+        grass = Color(0, 120, 40),
+        desert = Color(222, 184, 135),
+        sea = Color(0, 20, 200)
+      )
+
+      generatePlanet(i, options.config, textureOptions)
+    }
+  }
+
+  def generateBackground(options: SystemOptions): Unit = {
+    logger.info("beginning background generation")
+    val random = new Random(options.config.seed)
 
     val s = System.currentTimeMillis()
 
     val starData = {
       val noiseFunc = {
-        val noise = new CloudyNoise(new SimplexNoise(new Random(seed.toLong)), 8)
+        val noise = new CloudyNoise(new SimplexNoise(new Random(options.config.seed)), 8)
         (x: Double, y: Double) => noise.noise(x / options.backgroundSize, y / options.backgroundSize, 0) + 1
       }
 
@@ -49,13 +77,14 @@ object GenSystem extends LazyLogging {
       systemOut.setRGB(x, y, starData(x + y * options.backgroundSize).getRGB)
     }
 
-    ImageIO.write(systemOut, "png", new File(s"./backend/src/main/resources/web/img/background_$seed.png"))
+    ImageIO.write(systemOut, "png", makeFile(options.config.background))
 
-    logger.info(s"file written: '${s"./backend/src/main/resources/web/img/background_$seed.png"}'")
+    logger.info(s"file written: '${makePath(options.config.background)}'")
     logger.info(s"Background generation took ${(System.currentTimeMillis() - s) / 1000}s")
   }
 
-  def generatePlanets(seed: Long, options: TextureOptions): Unit = {
+  def generatePlanet(index: Int, systemConfig: SystemConfig, options: TextureOptions): Unit = {
+    logger.info(s"beginning planet generation: $index of ${systemConfig.planets.length}")
 
     val s = System.currentTimeMillis()
 
@@ -68,9 +97,9 @@ object GenSystem extends LazyLogging {
       systemOut.setRGB(x, y, planetData(x + y * options.width).rgb)
     }
 
-    ImageIO.write(systemOut, "png", new File(s"./backend/src/main/resources/web/img/planet_$seed.png"))
+    ImageIO.write(systemOut, "png", makeFile(systemConfig.tex(index)))
 
-    logger.info(s"file written: '${s"./backend/src/main/resources/web/img/planet_$seed.png"}'")
+    logger.info(s"file written: '${makePath(systemConfig.tex(index))}'")
 
     logger.info(s"Planet Texture Generation took ${(System.currentTimeMillis() - s) / 1000}s")
   }
@@ -79,6 +108,7 @@ object GenSystem extends LazyLogging {
 }
 
 case class SystemOptions(
+                          config: SystemConfig,
                           backgroundSize: Int = 3072,
                           pointsNear: Int = 20,
                           minRadius: Int = 1,

@@ -19,6 +19,7 @@
 * Different Weapons
 * State Database
 * User Login etc.
+* "Landing"
 
 ### Done For Now
 * Minimap

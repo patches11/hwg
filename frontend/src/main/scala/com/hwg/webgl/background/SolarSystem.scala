@@ -1,9 +1,7 @@
 package com.hwg.webgl.background
 
-import com.hwg.background.{PlanetTexture, StarField, TextureOptions}
 import com.hwg.models.Ship
-import com.hwg.util.noise.PerlinNoise
-import com.hwg.util.{Color, MatrixStack}
+import com.hwg.util.MatrixStack
 import com.hwg.webgl.model.{Model, SphereModel, TwoDModel}
 import com.hwg.webgl.{HwgWebGLProgram, TextureInfo}
 import org.scalajs.dom.raw.WebGLRenderingContext
@@ -16,12 +14,13 @@ case class SolarSystem(seed: Long, gl: WebGLRenderingContext) {
 
   import com.hwg.util.TypedArrayConverters._
   import com.hwg.util.VecmathConverters._
+  import com.hwg.util.RandomUtils._
 
-  val ambientColor = Float32Array(js.Array(0.5f, 0.5f, 0.5f))
+  val ambientColor = Float32Array(js.Array(0.1f, 0.2f, 0.3f))
 
   val lightDirection: Vec3 = Vec3(1, 1, -1)
 
-  val directionalLightColor = Float32Array(js.Array(0.5f, 0.5f, 0.5f))
+  val directionalLightColor = Float32Array(js.Array(0.0f, 0.4f, 0.2f))
 
   // BG Config
   val backgroundSize: Int = 2048
@@ -32,28 +31,19 @@ case class SolarSystem(seed: Long, gl: WebGLRenderingContext) {
   val maxIterations: Int = 25000
   val random = new Random(this.seed)
 
-  private val tex = TextureInfo.createFromUrl(gl, s"/img/planet_$seed.png")
+  private val texes = Seq(TextureInfo.createFromUrl(gl, s"/img/planet_${seed * 7}.png"), TextureInfo.createFromUrl(gl, s"/img/planet_${seed * 11}.png"))
   private val starFieldTex = TextureInfo.createFromUrl(gl, s"/img/background_$seed.png")
 
-  val planets = Array {
-    val planetModel = SphereModel(tex, gl, 8)
-    Planet(planetModel, 10, 0, -30, 8)
-  }
-
-  val tex2d = TwoDModel(tex, gl, 800, 400)
   val starField: Model = TwoDModel(starFieldTex, gl, 25 * this.backgroundSize, 25 * this.backgroundSize)
 
-  /*
-  val planets: Array[Planet] = (0 until 3).map { _ =>
-    val size = random.in(2, 5)
-    val textureArray = PlanetTexture.generate(textureOptions)
-    val tex = TextureInfo.createFromTex(gl, textureOptions.width, textureOptions.height, Uint8Array(textureArray))
+
+  val planets: Array[Planet] = texes.map { tex =>
+    val size = random.in(3, 5)
     val planetModel = SphereModel(tex, gl, size)
     Planet(planetModel, random.in(-100, 100), random.in(-100, 100), random.in(-35, -30), size)
-  }.toArray*/
+  }.toArray
 
   private val smokeTex = TextureInfo.createFromUrl(gl, "/img/smoke.png")
-  private val moonTex = TextureInfo.createFromUrl(gl, "/img/moon.gif")
   private val smoke = Smoke(smokeTex, gl)
 
   def draw(matrixStack: MatrixStack, thisShip: Ship, time: Long, program: HwgWebGLProgram): Unit = {
@@ -79,21 +69,16 @@ case class SolarSystem(seed: Long, gl: WebGLRenderingContext) {
     starField.draw(program, matrixStack, thisShip.x, thisShip.y)
     matrixStack.restore()
 
-    //smoke.draw(program, matrixStack, thisShip.x / 100, thisShip.y / 100, time)
+    smoke.draw(program, matrixStack, thisShip.x / 100, thisShip.y / 100, time)
 
     planets.foreach { planet =>
       matrixStack.save()
       matrixStack.translate(planet.x, planet.y, planet.z)
-      matrixStack.rotateZ(Math.sin(time.toDouble / 10000 + Math.PI) * Math.PI)
-      matrixStack.rotateX(Math.cos(time.toDouble / 10000 + Math.PI) * Math.PI)
+      matrixStack.rotateZ(Math.sin(time.toDouble / 1000000 + Math.PI) * Math.PI)
+      matrixStack.rotateX(Math.cos(time.toDouble / 1000000 + Math.PI) * Math.PI)
       planet.model.draw(program, matrixStack, thisShip.x, thisShip.y)
       matrixStack.restore()
     }
-
-    matrixStack.save()
-    matrixStack.translate(-2, 0, -5)
-    //tex2d.draw(program, matrixStack, thisShip.x, thisShip.y)
-    matrixStack.restore()
 
   }
 }

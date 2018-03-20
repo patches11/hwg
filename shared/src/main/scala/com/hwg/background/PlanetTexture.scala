@@ -1,11 +1,13 @@
 package com.hwg.background
 
-import com.hwg.util.{Color, MathExt}
+import com.hwg.universe.PlanetConfig
 import com.hwg.util.noise.{CloudyNoise, SimplexNoise}
+import com.hwg.util.{Color, MathExt}
 
 import scala.util.Random
 
 object PlanetTexture {
+
   import com.hwg.util.Optionally._
 
   def generate(options: TextureOptions): Array[Color] = {
@@ -42,10 +44,8 @@ object PlanetTexture {
 
         val easedBlend = MathExt.easeInOutCubic(heightValue, 0, 1, 1)
 
-        val darkenSizeSpeedFactor = 3
-        val darkenSizeFactor = 4
-        val darkenSizeRes = (darkenSizeNoise(spherePoint.x / darkenSizeSpeedFactor, spherePoint.y / darkenSizeSpeedFactor, spherePoint.z / darkenSizeSpeedFactor) + 1) / 2
-        val darkenSize = darkenSizeRes * darkenSizeFactor + 4
+        val darkenSizeRes = (darkenSizeNoise(spherePoint.x / options.darkenSizeSpeedFactor, spherePoint.y / options.darkenSizeSpeedFactor, spherePoint.z / options.darkenSizeSpeedFactor) + 1) / 2
+        val darkenSize = darkenSizeRes * options.darkenSizeFactor + options.darkenSizeMin
         val darken = Math.pow((darkenNoise(spherePoint.x * darkenSize, spherePoint.y * darkenSize, spherePoint.z * darkenSize) + 1) / 2, 2) - 0.5
 
         options.grass.blend(options.desert, easedBlend).reverseAdjust(darken)
@@ -53,7 +53,7 @@ object PlanetTexture {
 
       val eased = MathExt.easeInOutCubic(cloudValue, 0, 1, 1)
 
-      data(index) = color.optionally(eased > 0.1)(_.blend(Color.white, eased))
+      data(index) = color.optionally(eased > options.cloudMin)(_.blend(Color.white, eased))
     }
 
     data
@@ -78,8 +78,9 @@ object PlanetTexture {
 }
 
 case class TextureOptions(
+                           config: PlanetConfig,
                            size: Int,
-                           seed: Double,
+                           seed: Long,
                            grass: Color,
                            desert: Color,
                            sea: Color,
@@ -91,17 +92,21 @@ case class TextureOptions(
                            darkenSeed: Option[Double] = None,
                            cloudSizeFactor: Double = 6,
                            cloudSmallSkew: Double = 3,
-                           cloudSizeSpeedFactor: Double = 1.0
+                           cloudSizeSpeedFactor: Double = 1.0,
+                           darkenSizeSpeedFactor: Double = 3,
+                           darkenSizeFactor: Double = 4,
+                           darkenSizeMin: Double = 4,
+                           cloudMin: Double = 0.1
                          ) {
   def width: Int = size
 
   def height: Int = size / 2
 
-  def getCloudSeed: Double = cloudSeed.getOrElse(seed * 3)
-
   def getHeightSeed: Double = heightSeed.getOrElse(seed * 11)
 
   def getCloudSizeSeed: Double = cloudSizeSeed.getOrElse(getCloudSeed * 7)
+
+  def getCloudSeed: Double = cloudSeed.getOrElse(seed * 3)
 
   def getDarkenSeed: Double = darkenSeed.getOrElse(seed * 31)
 }
