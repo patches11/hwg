@@ -3,8 +3,8 @@ package com.hwg
 import com.hwg.models.Ship
 import com.hwg.util.{MatrixStack, Time}
 import com.hwg.webgl.model.TwoDModel
-import com.hwg.webgl.background.{SolarSystem}
-import com.hwg.webgl.{HwgWebGLProgram, TextureLoader}
+import com.hwg.webgl.background.SolarSystem
+import com.hwg.webgl.{Draw, HwgWebGLProgram, TextureLoader}
 import monix.reactive.Observable
 import org.scalajs.dom.KeyboardEvent
 import org.scalajs.dom.raw.{WebGLRenderingContext, WheelEvent}
@@ -36,7 +36,7 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
   val ships: mutable.Map[Int, Ship] = mutable.Map()
   val matrixStack = new MatrixStack()
 
-  val system = SolarSystem(31687, gl)
+  val system = SolarSystem(gl)
 
   val shipModel = TwoDModel(textureLoader.get("/img/shipA.png"), gl, 66, 100)
   val laserModel = TwoDModel(textureLoader.get("/img/laserA.png"), gl, 25, 50)
@@ -50,34 +50,37 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
 
   val radar = new Radar()
 
+  private val draws = mutable.SortedSet[Draw]()
+
   val draw: () => Unit = () => {
     val timeNow = time.now
 
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
     gl.clear(COLOR_BUFFER_BIT)
 
-    system.draw(matrixStack, thisShip, timeNow, program)
+    draws ++= system.draw(matrixStack, thisShip, timeNow, program)
 
-    ships.foreach { case (_, ship) =>
+    draws ++= ships.flatMap { case (_, ship) =>
+      Draw(-20, (ms: MatrixStack) => {
+        ms.translate(ship.x, ship.y, -20)
+        ms.rotateZ(ship.orientation)
 
-      matrixStack.save()
-      matrixStack.translate(ship.x, ship.y, -20)
-      matrixStack.rotateZ(ship.orientation)
+        shipModel.draw(program, matrixStack, thisShip.x, thisShip.y)
+      }) +: ship.projectiles.map { projectile =>
+        Draw(-20, (ms: MatrixStack) => {
+          ms.translate(projectile.x, projectile.y, -20)
+          ms.rotateZ(projectile.orientation)
 
-      shipModel.draw(program, matrixStack, thisShip.x, thisShip.y)
-
-      matrixStack.restore()
-
-      ship.projectiles.foreach { projectile =>
-        matrixStack.save()
-        matrixStack.translate(projectile.x, projectile.y, -20)
-        matrixStack.rotateZ(projectile.orientation)
-
-        laserModel.draw(program, matrixStack, thisShip.x, thisShip.y)
-
-        matrixStack.restore();
+          laserModel.draw(program, matrixStack, thisShip.x, thisShip.y)
+        })
       }
     }
+
+    draws.foreach { d =>
+      d.draw(matrixStack)
+    }
+
+    draws.clear()
 
     radar.draw(id, thisShip, ships, system.planets)
 

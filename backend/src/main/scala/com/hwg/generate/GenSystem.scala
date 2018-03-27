@@ -1,17 +1,14 @@
 package com.hwg.generate
 
 import java.awt.image.BufferedImage
-import java.io.File
 import javax.imageio.ImageIO
 
-import com.hwg.background.{PlanetTexture, StarField, TextureOptions}
+import com.hwg.background._
 import com.hwg.universe.SystemConfig
-import com.hwg.util.Color
 import com.hwg.util.noise.{CloudyNoise, SimplexNoise}
 import slogging.LazyLogging
 
 import scala.util.Random
-
 import java.io.File
 
 
@@ -32,26 +29,20 @@ object GenSystem extends LazyLogging {
 
     dir.mkdirs
 
-    Option(dir.listFiles).map(_.toList).getOrElse(Nil).foreach(_.delete())
+    //Option(dir.listFiles).map(_.toList).getOrElse(Nil).foreach(_.delete())
   }
 
   def generate(options: SystemOptions): Unit = {
     setup(options)
 
+    /*
     generateBackground(options)
 
     options.config.planets.zipWithIndex.foreach { case (planetConfig, i) =>
-      val textureOptions = TextureOptions(
-        planetConfig,
-        1600,
-        options.config.seed * 7 * (i + 1),
-        grass = Color(0, 120, 40),
-        desert = Color(222, 184, 135),
-        sea = Color(0, 20, 200)
-      )
+      generatePlanet(i, options.config, GenTextureOptions.generate(options.config.seed * (i + 3), planetConfig))
+    }*/
 
-      generatePlanet(i, options.config, textureOptions)
-    }
+    generateForeground(options)
   }
 
   def generateBackground(options: SystemOptions): Unit = {
@@ -84,7 +75,7 @@ object GenSystem extends LazyLogging {
   }
 
   def generatePlanet(index: Int, systemConfig: SystemConfig, options: TextureOptions): Unit = {
-    logger.info(s"beginning planet generation: $index of ${systemConfig.planets.length}")
+    logger.info(s"beginning planet generation: ${index + 1} of ${systemConfig.planets.length}")
 
     val s = System.currentTimeMillis()
 
@@ -104,12 +95,33 @@ object GenSystem extends LazyLogging {
     logger.info(s"Planet Texture Generation took ${(System.currentTimeMillis() - s) / 1000}s")
   }
 
+  def generateForeground(options: SystemOptions): Unit = {
+    logger.info(s"beginning foreground generation")
+
+    val s = System.currentTimeMillis()
+
+    val foregroundData = Foreground.generate(ForegroundOptions(options.config.seed, options.foregroundSize))
+
+    val systemOut = new BufferedImage(options.foregroundSize, options.foregroundSize, BufferedImage.TYPE_INT_ARGB)
+
+    for (x <- 0 until options.foregroundSize;
+         y <- 0 until options.foregroundSize) {
+      systemOut.setRGB(x, y, foregroundData(x + y * options.foregroundSize).rgb)
+    }
+
+    ImageIO.write(systemOut, "png", makeFile(options.config.foreground))
+
+    logger.info(s"file written: '${makePath(options.config.foreground)}'")
+
+    logger.info(s"Foreground Generation took ${(System.currentTimeMillis() - s) / 1000}s")
+  }
 
 }
 
 case class SystemOptions(
                           config: SystemConfig,
                           backgroundSize: Int = 3072,
+                          foregroundSize: Int = 3072,
                           pointsNear: Int = 20,
                           minRadius: Int = 1,
                           maxRadius: Int = 25, // TODO Why does options effect how options looks so much?

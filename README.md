@@ -12,6 +12,7 @@
 * Space Shit so you can tell you are moving
 * Name
 * Logo & Icon etc
+* Fix Star field generation
 
 ### Long Term
 

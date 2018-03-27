@@ -9,7 +9,9 @@ object Universe {
 
   val systemsIds: Seq[Long] =
     Seq(
-      31687L
+      //31687L,
+      //572323L,
+      43523222L
     )
 
   val systems: Seq[SystemConfig] = systemsIds.map { id =>
@@ -18,7 +20,7 @@ object Universe {
       id,
       (1 to rand.in(1 to max)).map { _ =>
         PlanetConfig(
-          (rand.in(-10, 10), rand.in(-10, 10)),
+          (rand.in(-100, 100), rand.in(-100, 100)),
           rand.in(1, 10),
           rand.in(2, 6),
           rand.in(0, 2 * Math.PI)
@@ -35,6 +37,7 @@ case class SystemConfig(
   def dir = s"img/gen/systems/$seed"
   def background = dir + "/background.png"
   def tex(index: Int) = dir + s"/$index.png"
+  def foreground = dir + "/foreground.png"
 }
 
 case class PlanetConfig(

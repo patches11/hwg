@@ -7,7 +7,7 @@ import com.hwg.util.{Color, MathExt}
 import scala.util.Random
 
 object PlanetTexture {
-
+  import BackgroundUtils._
   import com.hwg.util.Optionally._
 
   def generate(options: TextureOptions): Array[Color] = {
@@ -59,20 +59,6 @@ object PlanetTexture {
     data
   }
 
-  private def sphereMap(u: Double, v: Double): Point3d = {
-    val azimuth = 2 * Math.PI * u
-    val inclination = Math.PI * v
-    val init = if (v <= 0.5) v * 2 else 2 - v * 2
-    val x = init * Math.cos(azimuth)
-    val y = init * Math.sin(azimuth)
-    val z = Math.cos(inclination)
-    Point3d(x, y, z)
-  }
-
-  private def getNoiseFunction(seed: Double, octaves: Int): (Double, Double, Double) => Double = {
-    val noise = new CloudyNoise(new SimplexNoise(new Random(seed.toLong)), octaves)
-    (x: Double, y: Double, z: Double) => noise.noise(x, y, z)
-  }
 
 
 }
@@ -86,10 +72,10 @@ case class TextureOptions(
                            sea: Color,
                            octaves: Int = 16,
                            waterPercent: Double = 0.5,
-                           cloudSeed: Option[Double] = None,
-                           heightSeed: Option[Double] = None,
-                           cloudSizeSeed: Option[Double] = None,
-                           darkenSeed: Option[Double] = None,
+                           cloudSeed: Option[Long] = None,
+                           heightSeed: Option[Long] = None,
+                           cloudSizeSeed: Option[Long] = None,
+                           darkenSeed: Option[Long] = None,
                            cloudSizeFactor: Double = 6,
                            cloudSmallSkew: Double = 3,
                            cloudSizeSpeedFactor: Double = 1.0,
@@ -102,13 +88,13 @@ case class TextureOptions(
 
   def height: Int = size / 2
 
-  def getHeightSeed: Double = heightSeed.getOrElse(seed * 11)
+  def getHeightSeed: Long = heightSeed.getOrElse(seed * 11)
 
-  def getCloudSizeSeed: Double = cloudSizeSeed.getOrElse(getCloudSeed * 7)
+  def getCloudSizeSeed: Long = cloudSizeSeed.getOrElse(getCloudSeed * 7)
 
-  def getCloudSeed: Double = cloudSeed.getOrElse(seed * 3)
+  def getCloudSeed: Long = cloudSeed.getOrElse(seed * 3)
 
-  def getDarkenSeed: Double = darkenSeed.getOrElse(seed * 31)
+  def getDarkenSeed: Long = darkenSeed.getOrElse(seed * 31)
 }
 
 case class Point3d(x: Double, y: Double, z: Double)

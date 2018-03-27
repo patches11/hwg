@@ -66,6 +66,7 @@ case class HwgWebGLProgram(gl: WebGLRenderingContext, draw: () => Unit) extends 
     }
   }
 
+  // TODO: Remove x and y here, I think
   def setMatrixUniforms(mvMatrix: Mat4, x: Double, y: Double): Unit = {
     gl.uniformMatrix4fv(moveMatrix, transpose = false, mvMatrix.toJsArrayT)
 

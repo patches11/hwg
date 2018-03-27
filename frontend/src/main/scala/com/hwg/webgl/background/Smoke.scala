@@ -2,7 +2,7 @@ package com.hwg.webgl.background
 
 import com.hwg.util.MatrixStack
 import com.hwg.webgl.model.TwoDModel
-import com.hwg.webgl.{HwgWebGLProgram, TextureInfo}
+import com.hwg.webgl.{Draw, HwgWebGLProgram, TextureInfo}
 import org.scalajs.dom.raw.WebGLRenderingContext
 
 import scala.scalajs.js
@@ -22,14 +22,14 @@ case class Smoke(texture: TextureInfo, gl: WebGLRenderingContext, options: Smoke
       Random.nextDouble() * 2 * Math.PI)
   }.sortBy(_._3)
 
-  def draw(program: HwgWebGLProgram, matrixStack: MatrixStack, cameraX: Double, cameraY: Double, time: Long): Unit = {
-    locations.foreach { case (sx, sy, sz, sRot) =>
-      matrixStack.save()
-      matrixStack.translate(sx, sy, sz)
-      matrixStack.rotateZ(sRot + Math.sin(time.toDouble / 100000 + Math.PI) * Math.PI)
-      internalModel.draw(program, matrixStack, cameraX, cameraY, tint)
-      matrixStack.restore()
-    }
+  def draw(program: HwgWebGLProgram, cameraX: Double, cameraY: Double, time: Long): Array[Draw] = {
+    locations.map { case (sx, sy, sz, sRot) =>
+      Draw(sz, (ms: MatrixStack) => {
+        ms.translate(sx, sy, sz)
+        ms.rotateZ(sRot + Math.sin(time.toDouble / 100000 + Math.PI) * Math.PI)
+        internalModel.draw(program, ms, cameraX, cameraY, tint)
+      })
+    }.toArray
   }
 }
 

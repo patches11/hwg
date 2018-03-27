@@ -1,7 +1,7 @@
 package com.hwg.util
 
 
-case class Color(r: Short, g: Short, b: Short) {
+case class Color(r: Short, g: Short, b: Short, a: Short = 255) {
   def brighten(factor: Double): Color = {
     val vfac = 1 + factor
 
@@ -57,7 +57,7 @@ case class Color(r: Short, g: Short, b: Short) {
   }
 
   def rgb: Int = {
-    r << 16 | g << 8 | b
+    a << 24 | r << 16 | g << 8 | b
   }
 
   @inline
