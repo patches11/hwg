@@ -18,9 +18,11 @@ object Foreground {
 
       val n = (noise(loc(x, y, options)) + 1) / 2
 
-      val adj = Math.pow(n, 2)
+      val adj = Math.pow(n, options.adjust)
 
-      data(index) = Color(255, 255, 255, (adj * options.weight).toShort)
+      val a = (adj * options.weight).toShort
+
+      data(index) = Color(255, 255, 255, a)
     }
 
     data
@@ -37,14 +39,17 @@ object Foreground {
   }
 
   private def f(adj: Double, options: ForegroundOptions): Double = {
-    if (adj < 0.5)
-      adj * options.scale
-    else
-      (1 - adj) * options.scale
+    if (adj < 0.5) {
+      val adj2 = adj * Math.PI * 2 * options.scale
+      1 + adj2 - Math.cos(2 * adj2) / 2
+    } else {
+      val adj2 = (1 - adj) * Math.PI * 2 * options.scale
+      1 + adj2 - Math.cos(2 * adj2) / 2
+    }
   }
 
   private def fz(x: Double, y: Double): Double = {
-    Math.sin(x * Math.PI * 2) + Math.sin(y * Math.PI * 2)
+    Math.sin(x * Math.PI * 2) + Math.sin(y * Math.PI * 2) + 2
   }
 }
 
@@ -54,5 +59,6 @@ case class ForegroundOptions(
                               octaves: Int = 12,
                               z: Double = 0,
                               scale: Int = 8,
-                              weight: Int = 128
+                              weight: Int = 128,
+                              adjust: Double = 4
                             )

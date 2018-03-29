@@ -23,7 +23,7 @@ object TextureInfo {
   // creates a texture info { width: w, height: h, texture: tex }
   // The texture will start with 1x1 pixels and be updated
   // when the image has loaded
-  def createFromUrl(gl: WebGLRenderingContext, url: String): TextureInfo = {
+  def createFromUrl(gl: WebGLRenderingContext, url: String, format: Int = GL.RGBA): TextureInfo = {
     val texture = gl.createTexture()
 
     gl.bindTexture(GL.TEXTURE_2D, texture)
@@ -47,7 +47,7 @@ object TextureInfo {
       textureInfo.height = img.height
 
       gl.bindTexture(GL.TEXTURE_2D, textureInfo.texture)
-      gl.texImage2D(GL.TEXTURE_2D, 0, GL.RGBA, GL.RGBA, GL.UNSIGNED_BYTE, img)
+      gl.texImage2D(GL.TEXTURE_2D, 0, format, format, GL.UNSIGNED_BYTE, img)
       if (TextureInfo.isPowerOf2(img.width) && TextureInfo.isPowerOf2(img.height)) {
         // Yes, it's a power of 2. Generate mips.
         gl.generateMipmap(GL.TEXTURE_2D)

@@ -79,7 +79,7 @@ case class SolarSystem(gl: WebGLRenderingContext) {
       })
     } ++ pointSquare.map { point =>
       Draw(-15, (ms: MatrixStack) => {
-        ms.translate(point.x * foregroundSize / 15 / 3, point.y * foregroundSize / 15 / 3, -15)
+        ms.translate(point.x * foregroundSize / 40, point.y * foregroundSize / 40, -15)
         haze.draw(program, ms, thisShip.x, thisShip.y)
       })
     }
