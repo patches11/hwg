@@ -40,16 +40,14 @@ object Foreground {
 
   private def f(adj: Double, options: ForegroundOptions): Double = {
     if (adj < 0.5) {
-      val adj2 = adj * Math.PI * 2 * options.scale
-      1 + adj2 - Math.cos(2 * adj2) / 2
+      adj * options.scale
     } else {
-      val adj2 = (1 - adj) * Math.PI * 2 * options.scale
-      1 + adj2 - Math.cos(2 * adj2) / 2
+      (1 - adj) *  options.scale
     }
   }
 
   private def fz(x: Double, y: Double): Double = {
-    Math.sin(x * Math.PI * 2) + Math.sin(y * Math.PI * 2) + 2
+    Math.sin(2 * x * Math.PI * 2) + Math.sin(2 * y * Math.PI * 2) + 2
   }
 }
 
@@ -58,7 +56,7 @@ case class ForegroundOptions(
                               size: Int,
                               octaves: Int = 12,
                               z: Double = 0,
-                              scale: Int = 8,
+                              scale: Int = 16,
                               weight: Int = 128,
                               adjust: Double = 4
                             )
