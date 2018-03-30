@@ -56,7 +56,7 @@ case class ForegroundOptions(
                               size: Int,
                               octaves: Int = 12,
                               z: Double = 0,
-                              scale: Int = 16,
+                              scale: Int = 32,
                               weight: Int = 128,
                               adjust: Double = 4
                             )

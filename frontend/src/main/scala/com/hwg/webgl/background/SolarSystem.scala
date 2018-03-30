@@ -4,7 +4,7 @@ import com.hwg.models.Ship
 import com.hwg.universe.Universe
 import com.hwg.util.{MathExt, MatrixStack}
 import com.hwg.webgl.model.{Model, SphereModel, TwoDModel}
-import com.hwg.webgl.{Draw, HwgWebGLProgram, TextureInfo}
+import com.hwg.webgl.{Draw, DrawContext, HwgWebGLProgram, TextureInfo}
 import org.scalajs.dom.raw.WebGLRenderingContext
 import scryetek.vecmath.Vec3
 
@@ -24,13 +24,14 @@ case class SolarSystem(gl: WebGLRenderingContext) {
   // BG Config
   val backgroundSize: Int = 2048
   val foregroundSize: Int = 3072 // Get this from somewhere else
+  val foregroundMod: Int = 20
 
   val system = Universe.systems.head
 
   private val bg = TextureInfo.createFromUrl(gl, system.background)
   private val fg = TextureInfo.createFromUrl(gl, system.foreground)
   val starField: Model = TwoDModel(bg, gl, 25 * this.backgroundSize, 25 * this.backgroundSize)
-  val haze: Model = TwoDModel(fg, gl, 5 * foregroundSize, 5 * foregroundSize)
+  val haze: Model = TwoDModel(fg, gl, foregroundMod * foregroundSize, foregroundMod * foregroundSize)
 
 
   val planets: Array[Planet] = system.planets.zipWithIndex.map { case (planet, i) =>
@@ -45,44 +46,53 @@ case class SolarSystem(gl: WebGLRenderingContext) {
 
   private val pointSquare = MathExt.genPointSquare(3, includeOrigin = true)
 
-  def draw(matrixStack: MatrixStack, thisShip: Ship, time: Long, program: HwgWebGLProgram): Array[Draw] = {
+  def draw(draw: DrawContext, thisShip: Ship, time: Long, program: HwgWebGLProgram): Unit = {
 
-    Array(
-      Draw(0, (_: MatrixStack) => {
-        gl.uniform3fv(
-          program.ambientColor,
-          this.ambientColor
-        )
+    val boxX = (thisShip.x / (foregroundSize / (400 / foregroundMod))).toInt
+    val boxY = (thisShip.y / (foregroundSize / (400 / foregroundMod))).toInt
+    val foregroundAdj = foregroundSize / (200 / foregroundMod)
 
-        val adjustedLD = (new Vec3).set(lightDirection)
-        adjustedLD.normalize()
-        adjustedLD.scale(-1)
+    draw { _ =>
+      gl.uniform3fv(
+        program.ambientColor,
+        this.ambientColor
+      )
 
-        gl.uniform3fv(program.lightingDir, adjustedLD.toJsArray)
+      val adjustedLD = (new Vec3).set(lightDirection)
+      adjustedLD.normalize()
+      adjustedLD.scale(-1)
 
-        gl.uniform3fv(
-          program.dirColor,
-          this.directionalLightColor
-        )
-      }),
-      Draw(-100, (ms: MatrixStack) => {
-        ms.translate(thisShip.x, thisShip.y, -100)
-        starField.draw(program, ms, thisShip.x, thisShip.y)
-      })
-    ) ++ smoke.draw(program, thisShip.x / 100, thisShip.y / 100, time) ++
-    planets.map { planet =>
-      Draw(planet.z, (ms: MatrixStack) => {
+      gl.uniform3fv(program.lightingDir, adjustedLD.toJsArray)
+
+      gl.uniform3fv(
+        program.dirColor,
+        this.directionalLightColor
+      )
+    } at 0
+
+    draw { ms =>
+      ms.translate(thisShip.x, thisShip.y, -100)
+      starField.draw(program, ms, thisShip.x, thisShip.y)
+    } at -100
+
+    draw ++= smoke.draw(program, thisShip.x / 100, thisShip.y / 100, time)
+
+    planets.foreach { planet =>
+      draw { ms =>
         ms.translate(planet.x, planet.y, planet.z)
         ms.rotateZ(Math.sin(time.toDouble / 1000000 + Math.PI) * Math.PI)
         ms.rotateX(Math.cos(time.toDouble / 1000000 + Math.PI) * Math.PI)
         planet.model.draw(program, ms, thisShip.x, thisShip.y)
-      })
-    } ++ pointSquare.map { point =>
-      Draw(-15, (ms: MatrixStack) => {
-        ms.translate(point.x * foregroundSize / 40, point.y * foregroundSize / 40, -15)
-        haze.draw(program, ms, thisShip.x, thisShip.y)
-      })
+      } at planet.z
     }
+
+    pointSquare.foreach { point =>
+      draw { ms =>
+        ms.translate((boxX + point.x) * foregroundAdj, (boxY + point.y) * foregroundAdj, -15)
+        haze.draw(program, ms, thisShip.x, thisShip.y)
+      } at -15
+    }
+
   }
 }
 

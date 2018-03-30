@@ -4,7 +4,7 @@ import com.hwg.models.Ship
 import com.hwg.util.{MatrixStack, Time}
 import com.hwg.webgl.model.TwoDModel
 import com.hwg.webgl.background.SolarSystem
-import com.hwg.webgl.{Draw, HwgWebGLProgram, TextureLoader}
+import com.hwg.webgl.{Draw, DrawContext, HwgWebGLProgram, TextureLoader}
 import monix.reactive.Observable
 import org.scalajs.dom.KeyboardEvent
 import org.scalajs.dom.raw.{WebGLRenderingContext, WheelEvent}
@@ -50,7 +50,7 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
 
   val radar = new Radar()
 
-  private val draws = mutable.SortedSet[Draw]()
+  private val drawContext = new DrawContext()
 
   val draw: () => Unit = () => {
     val timeNow = time.now
@@ -58,29 +58,27 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
     gl.clear(COLOR_BUFFER_BIT)
 
-    draws ++= system.draw(matrixStack, thisShip, timeNow, program)
+    system.draw(drawContext, thisShip, timeNow, program)
 
-    draws ++= ships.flatMap { case (_, ship) =>
-      Draw(-20, (ms: MatrixStack) => {
+    ships.foreach { case (_, ship) =>
+      drawContext { ms =>
         ms.translate(ship.x, ship.y, -20)
         ms.rotateZ(ship.orientation)
 
         shipModel.draw(program, matrixStack, thisShip.x, thisShip.y)
-      }) +: ship.projectiles.map { projectile =>
-        Draw(-20, (ms: MatrixStack) => {
+      } at -20
+
+      ship.projectiles.foreach { projectile =>
+        drawContext { ms =>
           ms.translate(projectile.x, projectile.y, -20)
           ms.rotateZ(projectile.orientation)
 
           laserModel.draw(program, matrixStack, thisShip.x, thisShip.y)
-        })
+        } at -20
       }
     }
 
-    draws.foreach { d =>
-      d.draw(matrixStack)
-    }
-
-    draws.clear()
+    drawContext.execute(matrixStack)
 
     radar.draw(id, thisShip, ships, system.planets)
 
