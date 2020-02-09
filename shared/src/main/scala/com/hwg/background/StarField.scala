@@ -14,7 +14,7 @@ object StarField {
   def generateTexture(width: Int, height: Int, newPointsCount: Int, minRadius: Double, maxRadius: Double,
                       minDistFunc: (Double, Double) => Double, random: Random, maxIterations: Int): Array[Color] = {
     val data = Array.fill[Color](width * height)(Color.BLACK)
-    val brightness = 50
+    val brightness = 150
 
     generate(width, height, minRadius, maxRadius, minDistFunc, newPointsCount, random, maxIterations).foreach((point) => {
       val index = (Math.floor(point.x) + Math.floor(point.y) * width).toInt

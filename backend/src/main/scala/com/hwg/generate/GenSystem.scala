@@ -29,18 +29,18 @@ object GenSystem extends LazyLogging {
 
     dir.mkdirs
 
-    //Option(dir.listFiles).map(_.toList).getOrElse(Nil).foreach(_.delete())
+    Option(dir.listFiles).map(_.toList).getOrElse(Nil).foreach(_.delete())
   }
 
   def generate(options: SystemOptions): Unit = {
     setup(options)
 
-    /*
+
     generateBackground(options)
 
     options.config.planets.zipWithIndex.foreach { case (planetConfig, i) =>
       generatePlanet(i, options.config, GenTextureOptions.generate(options.config.seed * (i + 3), planetConfig))
-    }*/
+    }
 
     generateForeground(options)
   }
@@ -120,7 +120,7 @@ object GenSystem extends LazyLogging {
 
 case class SystemOptions(
                           config: SystemConfig,
-                          backgroundSize: Int = 3072,
+                          backgroundSize: Int = 4092,
                           foregroundSize: Int = 3072,
                           pointsNear: Int = 20,
                           minRadius: Int = 1,

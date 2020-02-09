@@ -13,6 +13,7 @@
 * Name
 * Logo & Icon etc
 * Fix Star field generation
+* Fix background illumination
 
 ### Long Term
 

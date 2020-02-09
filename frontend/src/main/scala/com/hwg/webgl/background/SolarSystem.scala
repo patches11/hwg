@@ -22,15 +22,18 @@ case class SolarSystem(gl: WebGLRenderingContext) {
   val directionalLightColor = Float32Array(js.Array(0.0f, 0.4f, 0.2f))
 
   // BG Config
-  val backgroundSize: Int = 2048
+  val backgroundSize: Int = 4092
   val foregroundSize: Int = 3072 // Get this from somewhere else
   val foregroundMod: Int = 20
+  val backgroundMod: Int = 10
 
   val system = Universe.systems.head
 
+  println(s"system: ${system.seed}")
+
   private val bg = TextureInfo.createFromUrl(gl, system.background)
   private val fg = TextureInfo.createFromUrl(gl, system.foreground)
-  val starField: Model = TwoDModel(bg, gl, 25 * this.backgroundSize, 25 * this.backgroundSize)
+  val starField: Model = TwoDModel(bg, gl, backgroundMod * this.backgroundSize, backgroundMod * this.backgroundSize)
   val haze: Model = TwoDModel(fg, gl, foregroundMod * foregroundSize, foregroundMod * foregroundSize)
 
 
@@ -42,7 +45,7 @@ case class SolarSystem(gl: WebGLRenderingContext) {
   }.toArray
 
   private val smokeTex = TextureInfo.createFromUrl(gl, "/img/smoke.png")
-  private val smoke = Smoke(smokeTex, gl)
+  private val smoke = Smoke(smokeTex, gl, SmokeOptions(center = (100, 100, -40)))
 
   private val pointSquare = MathExt.genPointSquare(3, includeOrigin = true)
 
@@ -71,9 +74,9 @@ case class SolarSystem(gl: WebGLRenderingContext) {
     } at 0
 
     draw { ms =>
-      ms.translate(thisShip.x, thisShip.y, -100)
+      ms.translate(thisShip.x, thisShip.y, -50)
       starField.draw(program, ms, thisShip.x, thisShip.y)
-    } at -100
+    } at -50
 
     draw ++= smoke.draw(program, thisShip.x / 100, thisShip.y / 100, time)
 

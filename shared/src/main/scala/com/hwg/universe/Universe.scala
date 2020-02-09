@@ -6,13 +6,17 @@ object Universe {
   import com.hwg.util.RandomUtils._
 
   val max = 5
+  val universeSeed = 3233523L
 
-  val systemsIds: Seq[Long] =
-    Seq(
-      //31687L,
-      //572323L,
+  val systemsIds: Seq[Long] = {
+    val r = new Random(universeSeed)
+    Iterator.continually(r.nextLong()).take(1).toSeq
+  }
+    /*Seq(
+      31687L,
+      572323L,
       43523222L
-    )
+    )*/
 
   val systems: Seq[SystemConfig] = systemsIds.map { id =>
     val rand = new Random(id)
