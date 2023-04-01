@@ -19,13 +19,26 @@ lazy val root =
       name := "HWG",
       organization := "com.hwg",
       version := "0.1",
+      docker / dockerfile := {
+        val appDir: File = stage.value
+        val targetDir = "/app"
+
+        new Dockerfile {
+          from("openjdk:8-jre")
+          entryPoint(s"$targetDir/bin/${executableScriptName.value}")
+          copy(appDir, targetDir, chown = "daemon:daemon")
+        }
+      },
+      docker / imageNames := Seq(
+        ImageName(s"192.168.86.185:31836/hwg:${version.value}")
+      )
     )
-    .enablePlugins(JavaAppPackaging)
+    .enablePlugins(sbtdocker.DockerPlugin, JavaAppPackaging)
     .dependsOn(backend)
 
 updateConfiguration in updateSbtClassifiers := (updateConfiguration in updateSbtClassifiers).value.withMissingOk(true)
 
-lazy val vecmath = ProjectRef(uri("git://github.com/patches11/vecmath.git#0010d1f062d8295fd78d1e98091cba2c85265196"), "vecMathJS")
+lazy val vecmath = ProjectRef(uri("https://github.com/patches11/vecmath.git#0010d1f062d8295fd78d1e98091cba2c85265196"), "vecMathJS")
 
 // Scala-Js frontend
 lazy val frontend =

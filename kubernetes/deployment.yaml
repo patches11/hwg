@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hwg
+  labels:
+    app: hwg
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hwg
+  template:
+    metadata:
+      labels:
+        app: hwg
+    spec:
+      containers:
+        - name: patrickbrown-us
+          image: 192.168.86.185:31836/hwg:0.1
+          ports:
+            - containerPort: 8080
