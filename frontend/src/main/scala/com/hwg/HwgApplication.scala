@@ -108,14 +108,22 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
     logger.info("tick start")
     val deltaTime = lastReceivedState match {
       case Some((state, estimatedSentAt)) =>
+        val d1 = estimatedSentAt - lastTick
+        state.ships.foreach { case (id, shipInfo) =>
+          val estShip = ships.getOrElse(id, Ship())
+          estShip.tick(d1)
+          logger.info(s"delta ${d1} estimated (${estShip.x}, ${estShip.y}) actual ${shipInfo.x}, ${shipInfo.y}")
+        }
         state.ships.foreach { case (id, shipInfo) =>
           val ship = ships.getOrElse(id, Ship())
           ship.updateFrom(shipInfo)
           ships(id) = ship
         }
         lastReceivedState = None
+        logger.info("update")
         time.nowRaw - estimatedSentAt
       case None =>
+        logger.info("non-update")
         time.nowRaw - lastTick
     }
 

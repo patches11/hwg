@@ -1,7 +1,5 @@
 #!/bin/bash
 
-COMMIT=$(git rev-parse HEAD)
+export TAG=$(git rev-parse HEAD)
 
-FULL_TAG = $COMMIT
-
-envsubst kubernetes/deployment.yaml | kubectl apply -f -
+envsubst < kubernetes/deployment.yaml | kubectl apply -f -
