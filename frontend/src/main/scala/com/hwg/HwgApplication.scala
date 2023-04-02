@@ -54,19 +54,12 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
   private val drawContext = new DrawContext()
 
   val draw: () => Unit = () => {
-    logger.info("draw")
+    logger.info("draw start")
     val timeNow = time.now
 
-    val deltaTime = timeNow - lastDraw
 
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
     gl.clear(COLOR_BUFFER_BIT)
-
-    ships.foreach { case (_, ship) =>
-      ship.tick(deltaTime)
-
-      ship.projectiles.foreach(p => p.tick(deltaTime))
-    }
 
     system.draw(drawContext, thisShip, timeNow, program)
 
@@ -97,6 +90,8 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
     program.setCamera(thisShip.x, thisShip.y)
 
     lastDraw = timeNow
+    logger.info("draw end")
+
   }
 
   private val program = HwgWebGLProgram(gl, draw)
@@ -142,11 +137,11 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
 
     logger.info(s"latency ${time.getLatency} delta time $deltaTime")
 
-    /*ships.foreach { case (_, ship) =>
+    ships.foreach { case (_, ship) =>
       ship.tick(deltaTime)
 
       ship.projectiles.foreach(p => p.tick(deltaTime))
-    }*/
+    }
 
     if (client.alive) {
       client.send(ThisShip(thisShip))
