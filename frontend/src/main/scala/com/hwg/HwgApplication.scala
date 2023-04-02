@@ -4,19 +4,21 @@ import com.hwg.models.Ship
 import com.hwg.util.{MatrixStack, Time}
 import com.hwg.webgl.model.TwoDModel
 import com.hwg.webgl.background.SolarSystem
-import com.hwg.webgl.{Draw, DrawContext, HwgWebGLProgram, TextureLoader}
+import com.hwg.webgl.{DrawContext, HwgWebGLProgram, TextureLoader}
 import monix.reactive.Observable
 import org.scalajs.dom.KeyboardEvent
 import org.scalajs.dom.raw.{WebGLRenderingContext, WheelEvent}
 import Protocol.{Dead, Initialized, State, ThisShip}
 import com.hwg.gui.{Chat, Radar}
+import slogging.LazyLogging
 
 import scala.scalajs.js
 import js.Dynamic.{global => g}
 import scala.collection.mutable
 import scala.scalajs.js
 
-class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[KeyboardEvent], wheelEvents: Observable[WheelEvent] ) {
+class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[KeyboardEvent], wheelEvents: Observable[WheelEvent]) extends LazyLogging {
+
   import WebGLRenderingContext._
   import com.hwg.models.ShipControls._
   import monix.execution.Scheduler.Implicits.global
@@ -129,11 +131,13 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
 
     val thisTickAhead = Math.floor((time.now - lastTick) / tickInterval) // Number of ticks ahead of last we are
     val target = thisTickAhead + 1 * tickInterval + lastTick
+    val nextTickIn = target - time.now
+
+    logger.info(s"nextTickIn ${nextTickIn}")
 
     lastTick = thisTime
-    js.timers.setTimeout(target - time.now)(tick)
+    js.timers.setTimeout(nextTickIn)(tick)
   }
-
 
 
 }

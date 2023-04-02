@@ -18,7 +18,7 @@ lazy val root =
       mainClass in Compile := Some("com.hwg.Hwg"),
       name := "HWG",
       organization := "com.hwg",
-      version := "0.1",
+      version := "0.0.1",
       docker / dockerfile := {
         val appDir: File = stage.value
         val targetDir = "/app"
@@ -72,7 +72,7 @@ lazy val backend =
         "biz.enef" %% "slogging" % "0.6.1"
       ),
       resourceGenerators in Compile += Def.task {
-        val f1 = (fullOptJS in Compile in frontend).value
+        val f1 = (fastOptJS in Compile in frontend).value
         val f2 = (packageScalaJSLauncher in Compile in frontend).value
         Seq(f1.data, f2.data)
       }.taskValue,

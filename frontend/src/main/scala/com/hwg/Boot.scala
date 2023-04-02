@@ -10,14 +10,14 @@ import org.scalajs.dom.{KeyboardEvent, html, raw}
 
 import scala.scalajs.js
 import slogging._
-object Boot extends js.JSApp {
+object Boot {
 
   import monix.execution.Scheduler.Implicits.global
 
   private val eventLimit = 10000
   private val canvas = dom.document.getElementById("canvas").asInstanceOf[html.Canvas]
 
-  def main(): Unit = {
+  def main(_args: Array[String]): Unit = {
     LoggerConfig.factory = ConsoleLoggerFactory()
 
     val gl: raw.WebGLRenderingContext = canvas.getContext("webgl", {}).asInstanceOf[raw.WebGLRenderingContext]
