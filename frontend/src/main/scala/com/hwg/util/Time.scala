@@ -25,6 +25,7 @@ class Time(val client: WebsocketClient) extends LazyLogging {
       case TimeMessage(sendTime, serverTime, receiveTime) =>
         val latency = receiveTime - sendTime
         val delta = receiveTime - serverTime + latency / 2
+        logger.info(f"time delta ${delta} latency ${latency}")
 
         val sample = TimeDelta(latency, delta)
 
@@ -57,7 +58,6 @@ class Time(val client: WebsocketClient) extends LazyLogging {
 
       Stats.mean(filtered).foreach(delta => setDelta(delta.toLong))
 
-      logger.info(f"time delta ${currentDelta}")
     }
 
   }
@@ -69,7 +69,8 @@ class Time(val client: WebsocketClient) extends LazyLogging {
   def nowRaw: Long = new Date().getTime().toLong
 
   def now: Long = {
-    new Date().getTime().toLong + currentDelta.getOrElse(0L)
+    //new Date().getTime().toLong + currentDelta.getOrElse(0L)
+    nowRaw
   }
 
 

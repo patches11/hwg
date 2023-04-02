@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: patrickbrown-us
-          image: 192.168.86.185:31836/hwg:0.0.1
+          image: 192.168.86.185:31836/hwg:0.0.2
           resources:
             requests:
               memory: 2G 
