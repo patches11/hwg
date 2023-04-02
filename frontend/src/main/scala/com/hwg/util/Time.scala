@@ -69,8 +69,7 @@ class Time(val client: WebsocketClient) extends LazyLogging {
   def nowRaw: Long = new Date().getTime().toLong
 
   def now: Long = {
-    //new Date().getTime().toLong + currentDelta.getOrElse(0L)
-    nowRaw
+    new Date().getTime().toLong + currentDelta.getOrElse(0L)
   }
 
 

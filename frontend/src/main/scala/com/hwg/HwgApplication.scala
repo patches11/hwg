@@ -19,7 +19,7 @@ import scala.scalajs.js
 
 class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[KeyboardEvent], wheelEvents: Observable[WheelEvent]) extends LazyLogging {
 
-  logger.info("Welcome to HWG 0.0.3")
+  logger.info("Welcome to HWG 0.0.4")
 
   import WebGLRenderingContext._
   import com.hwg.models.ShipControls._
@@ -135,7 +135,7 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
     val target = thisTickAhead + 1 * tickInterval + lastTick
     val nextTickIn = target - time.now
 
-    logger.info(s"nextTickIn ${nextTickIn}")
+    logger.info(s"thisTime ${thisTime} deltaTime ${deltaTime} thisTickAhead ${thisTickAhead} target ${target} nextTickIn ${nextTickIn}")
 
     lastTick = thisTime
     js.timers.setTimeout(nextTickIn)(tick)
