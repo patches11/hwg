@@ -18,7 +18,7 @@ class Webservice(version: String)(implicit system: ActorSystem) extends Directiv
 
   private val systemMaster = system.actorOf(Props(new SystemMaster))
   private val chatMaster   = system.actorOf(Props(new SystemChat))
-  private val shipFlow = new ShipFlow(version)
+  private val shipFlowCreator = new ShipFlow(version)
 
   private implicit val materializer = ActorMaterializer()
 
@@ -74,7 +74,7 @@ class Webservice(version: String)(implicit system: ActorSystem) extends Directiv
       getFromResourceDirectory("web")
 
   def websocketFlow(): Flow[Message, Message, Any] = {
-    val shipFlow = shipFlow.create(system, systemMaster, chatMaster)
+    val shipFlow = shipFlowCreator.create(system, systemMaster, chatMaster)
 
     splitFlow
       .map { bytes =>
