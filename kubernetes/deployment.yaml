@@ -26,7 +26,7 @@ spec:
               memory: 3G
               cpu: 1
           env:
-            - name: PORT
-              value: 8080
+          - name: PORT
+            value: 8080
           ports:
             - containerPort: 8080
