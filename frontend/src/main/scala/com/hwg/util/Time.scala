@@ -16,6 +16,7 @@ class Time(val client: WebsocketClient) extends LazyLogging {
 
   private val samples: ArrayBuffer[TimeDelta] = ArrayBuffer()
   var currentDelta: Option[Long] = None
+  var currentLatency: Option[Long] = None
   val obsLimit = 10
 
   init()
@@ -30,13 +31,8 @@ class Time(val client: WebsocketClient) extends LazyLogging {
 
         samples.append(sample)
 
-        if (this.samples.length >= this.obsLimit) {
-          updateDelta()
-        } else {
-          if (currentDelta.isEmpty) {
-            this.setDelta(delta)
-          }
-        }
+        updateMetrics()
+
     }.subscribe()
 
     js.timers.setTimeout(nextReq) {
@@ -44,26 +40,35 @@ class Time(val client: WebsocketClient) extends LazyLogging {
     }
   }
 
-  def updateDelta(): Unit = {
+  private def updateMetrics(): Unit = {
     if (samples.length > obsLimit) {
       this.samples.remove(samples.length - obsLimit)
     }
 
     val deltas = this.samples.map(_.delta)
+    val latencies = this.samples.map(_.latency)
 
     for (median <- Stats.median(deltas);
          stdDev <- Stats.stdDev(deltas)) yield {
       val filtered = deltas.filter(delta => delta < median + stdDev && delta > median - stdDev)
 
-      Stats.mean(filtered).foreach(delta => setDelta(delta.toLong))
+      Stats.mean(filtered).foreach(delta => {
+        this.currentDelta = Some(delta.toLong)
+      })
+
+    }
+    for (median <- Stats.median(latencies);
+         stdDev <- Stats.stdDev(latencies)) yield {
+      val filtered = latencies.filter(latency => latency < median + stdDev && latency > median - stdDev)
+
+      Stats.mean(filtered).foreach(latency => {
+        this.currentLatency = Some(latency.toLong)
+      })
 
     }
 
   }
 
-  private def setDelta(delta: Long): Unit = {
-    currentDelta = Some(delta)
-  }
 
   def nowRaw: Long = new Date().getTime().toLong
 
