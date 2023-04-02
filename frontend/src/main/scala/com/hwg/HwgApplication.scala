@@ -15,11 +15,10 @@ import slogging.LazyLogging
 import scala.scalajs.js
 import js.Dynamic.{global => g}
 import scala.collection.mutable
-import scala.scalajs.js
 
 class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[KeyboardEvent], wheelEvents: Observable[WheelEvent]) extends LazyLogging {
 
-  logger.info("Welcome to HWG 0.0.5")
+  logger.info("Welcome to HWG 0.0.6")
 
   import WebGLRenderingContext._
   import com.hwg.models.ShipControls._
@@ -29,8 +28,8 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
 
   val client = new WebsocketClient()
   val time = new Time(client)
-  val chat = new Chat(client, 0)
-  val textureLoader = new TextureLoader(gl)
+  new Chat(client, 0)
+  private val textureLoader = new TextureLoader(gl)
 
   val thisShip: Ship = Ship()
   var id: Option[Int] = None
@@ -40,17 +39,16 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
   val ships: mutable.Map[Int, Ship] = mutable.Map()
   val matrixStack = new MatrixStack()
 
-  val system = SolarSystem(gl)
+  private val system = SolarSystem(gl)
 
-  val shipModel = TwoDModel(textureLoader.get("/img/shipA.png"), gl, 66, 100)
-  val laserModel = TwoDModel(textureLoader.get("/img/laserA.png"), gl, 25, 50)
+  private val shipModel = TwoDModel(textureLoader.get("/img/shipA.png"), gl, 66, 100)
+  private val laserModel = TwoDModel(textureLoader.get("/img/laserA.png"), gl, 25, 50)
 
-  var lastTick: Long = time.now
-  var tickInterval: Long = 25
+  private var lastTick: Long = time.now
+  private val tickInterval: Long = 25
 
-  var lastReceivedState: Option[State] = None
+  private var lastReceivedState: Option[State] = None
 
-  js.timers.setTimeout(tickInterval)(tick)
 
   val radar = new Radar()
 
@@ -89,7 +87,7 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
     program.setCamera(thisShip.x, thisShip.y)
   }
 
-  val program = HwgWebGLProgram(gl, draw)
+  private val program = HwgWebGLProgram(gl, draw)
 
   client.getObservable.collect {
     case Initialized(lId) =>
@@ -106,7 +104,7 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
     program.zoom(we.deltaY)
   }
 
-  def tick(): Unit = {
+  private val tick = () => {
     lastReceivedState.foreach { state =>
       lastTick = state.id
       //this.tickInterval = tick.tickInterval
@@ -124,7 +122,7 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
     ships.foreach { case (_, ship) =>
       ship.tick(deltaTime)
 
-      ship.projectiles.foreach((p) => p.tick(deltaTime))
+      ship.projectiles.foreach(p => p.tick(deltaTime))
     }
 
     if (client.alive) {
@@ -135,11 +133,9 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
     val target = thisTickAhead + 1 * tickInterval + lastTick
     val nextTickIn = target - time.now
 
-    logger.info(s"thisTime ${thisTime} deltaTime ${deltaTime} thisTickAhead ${thisTickAhead} target ${target} nextTickIn ${nextTickIn}")
-
     lastTick = thisTime
-    js.timers.setTimeout(nextTickIn)(tickInterval)
+    js.timers.setTimeout(tickInterval)(tick)
   }
 
-
+  js.timers.setTimeout(0)(tick)
 }
