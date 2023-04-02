@@ -1,6 +1,6 @@
 package com.hwg
 
-import com.hwg.models.Ship
+import com.hwg.models.{Entity, Ship}
 import com.hwg.util.{MatrixStack, Time}
 import com.hwg.webgl.model.TwoDModel
 import com.hwg.webgl.background.SolarSystem
@@ -53,8 +53,16 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
 
   private val drawContext = new DrawContext()
 
+  val updateEntity = (entity: Entity, model: TwoDModel, thisX: Double, thisY: Double) => {
+    drawContext { ms =>
+      ms.translate(entity.x, entity.y, -20)
+      ms.rotateZ(entity.orientation)
+
+      model.draw(program, matrixStack, thisX, thisY)
+    } at -20
+  }
+
   val draw: () => Unit = () => {
-    logger.info("draw start")
     val timeNow = time.now
 
     val thisX = thisShip.x
@@ -67,25 +75,11 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
 
     system.draw(drawContext, thisX, thisY, timeNow, program)
 
-    logger.info(s"thisShip (${thisX}, ${thisY})")
-
     ships.foreach { case (id, ship) =>
-
-      logger.info(s"ship $id (${ship.x}, ${ship.y})")
-      drawContext { ms =>
-        ms.translate(ship.x, ship.y, -20)
-        ms.rotateZ(ship.orientation)
-
-        shipModel.draw(program, matrixStack, thisX, thisY)
-      } at -20
+      updateEntity(ship, shipModel, thisX, thisY)
 
       ship.projectiles.foreach { projectile =>
-        drawContext { ms =>
-          ms.translate(projectile.x, projectile.y, -20)
-          ms.rotateZ(projectile.orientation)
-
-          laserModel.draw(program, matrixStack, thisX, thisY)
-        } at -20
+        updateEntity(projectile, laserModel, thisX, thisY)
       }
     }
 
@@ -95,8 +89,6 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
 
 
     lastDraw = timeNow
-    logger.info("draw end")
-
   }
 
   private val program = HwgWebGLProgram(gl, draw)
@@ -118,29 +110,18 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
   }
 
   private val tick: () => Unit = () => {
-    logger.info("tick start")
     val deltaTime = lastReceivedState match {
       case Some((state, estimatedSentAt)) =>
-        val d1 = estimatedSentAt - lastTick
-        state.ships.foreach { case (id, shipInfo) =>
-          val estShip = ships.getOrElse(id, Ship())
-          estShip.tick(d1)
-          logger.info(s"delta ${d1} estimated (${estShip.x}, ${estShip.y}) actual ${shipInfo.x}, ${shipInfo.y}")
-        }
         state.ships.foreach { case (id, shipInfo) =>
           val ship = ships.getOrElse(id, Ship())
           ship.updateFrom(shipInfo)
           ships(id) = ship
         }
         lastReceivedState = None
-        logger.info("update")
         time.nowRaw - estimatedSentAt
       case None =>
-        logger.info("non-update")
         time.nowRaw - lastTick
     }
-
-    logger.info(s"latency ${time.getLatency} delta time $deltaTime")
 
     ships.foreach { case (_, ship) =>
       ship.tick(deltaTime)
@@ -152,7 +133,6 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
       client.send(ThisShip(thisShip))
     }
     lastTick = time.nowRaw
-    logger.info("tick end")
     js.timers.RawTimers.setTimeout(tick, tickInterval)
   }
 
