@@ -18,7 +18,7 @@ import scala.collection.mutable
 
 class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[KeyboardEvent], wheelEvents: Observable[WheelEvent]) extends LazyLogging {
 
-  logger.info("Welcome to HWG 0.0.7")
+  logger.info("Welcome to HWG 0.0.8")
 
   import WebGLRenderingContext._
   import com.hwg.models.ShipControls._
@@ -47,7 +47,7 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
   private var lastTick: Long = time.now
   private val tickInterval: Long = 25
 
-  private var lastReceivedState: Option[State] = None
+  private var lastReceivedState: Option[(State, Long)] = None
 
 
   val radar = new Radar()
@@ -94,7 +94,7 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
       id = Some(lId)
       ships.update(lId, thisShip)
     case s: State =>
-      lastReceivedState = Some(s)
+      lastReceivedState = Some((s, time.nowRaw))
     case Dead(dId) =>
       if (id.contains(dId))
         g.alert("Dead!!!!!")
@@ -106,19 +106,19 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
 
   private val tick: () => Unit = () => {
     logger.info("Tick")
-    lastReceivedState.foreach { state =>
-      lastTick = state.id
-      //this.tickInterval = tick.tickInterval
-      state.ships.foreach { case (id, shipInfo) =>
-        val ship = ships.getOrElse(id, Ship())
-        ship.updateFrom(shipInfo)
-        ships(id) = ship
-      }
-      lastReceivedState = None
-    }
 
-    val thisTime = time.now
-    val deltaTime = thisTime - lastTick
+    val deltaTime = lastReceivedState match {
+      case Some((state, receivedAt)) =>
+        state.ships.foreach { case (id, shipInfo) =>
+          val ship = ships.getOrElse(id, Ship())
+          ship.updateFrom(shipInfo)
+          ships(id) = ship
+        }
+        lastReceivedState = None
+        time.nowRaw - receivedAt
+      case None =>
+        time.nowRaw - lastTick
+    }
 
     ships.foreach { case (_, ship) =>
       ship.tick(deltaTime)
@@ -129,14 +129,9 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
     if (client.alive) {
       client.send(ThisShip(thisShip))
     }
-
-    val thisTickAhead = Math.floor((time.now - lastTick) / tickInterval) // Number of ticks ahead of last we are
-    val target = thisTickAhead + 1 * tickInterval + lastTick
-    val nextTickIn = target - time.now
-
-    lastTick = thisTime
-    js.timers.setTimeout(tickInterval)(tick)
+    lastTick = time.nowRaw
+    js.timers.RawTimers.setTimeout(tick, tickInterval)
   }
 
-  js.timers.setTimeout(tickInterval)(tick)
+  js.timers.RawTimers.setTimeout(tick, tickInterval)
 }
