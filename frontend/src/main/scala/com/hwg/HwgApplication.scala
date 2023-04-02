@@ -104,7 +104,7 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
     program.zoom(we.deltaY)
   }
 
-  private val tick = () => {
+  private val tick: () => Unit = () => {
     lastReceivedState.foreach { state =>
       lastTick = state.id
       //this.tickInterval = tick.tickInterval
