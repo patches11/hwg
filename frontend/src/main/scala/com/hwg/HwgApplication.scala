@@ -57,8 +57,8 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
     logger.info("draw start")
     val timeNow = time.now
 
-    val thisX = math.round(thisShip.x).toDouble
-    val thisY = math.round(thisShip.y).toDouble
+    val thisX = thisShip.x
+    val thisY = thisShip.y
 
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
     gl.clear(COLOR_BUFFER_BIT)
