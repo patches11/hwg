@@ -8,7 +8,7 @@ import akka.stream.scaladsl.Flow
 import com.hwg.LocalMessages.{ShipLeft, ShipUpdate}
 import com.hwg.Protocol._
 
-object ShipFlow {
+class ShipFlow(version: String) {
   private val bufferSize = 1000
   private val overflowStrategy = OverflowStrategy.dropHead
   private var id = 0
@@ -38,8 +38,8 @@ object ShipFlow {
 
     override def preStart(): Unit = {
       super.preStart()
-      output ! Initialized(id)
-      output ! ReceiveMessage("System", clock.millis(), "Welcome to System Butt")
+      output ! Initialized(id, version)
+      output ! ReceiveMessage("System", clock.millis(), "Welcome to HWG")
     }
 
     def receive: Receive = {

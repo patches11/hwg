@@ -18,8 +18,6 @@ import scala.collection.mutable
 
 class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[KeyboardEvent], wheelEvents: Observable[WheelEvent]) extends LazyLogging {
 
-  logger.info("Welcome to HWG v0.0.10")
-
   import WebGLRenderingContext._
   import com.hwg.models.ShipControls._
   import monix.execution.Scheduler.Implicits.global
@@ -55,6 +53,7 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
   private val drawContext = new DrawContext()
 
   val draw: () => Unit = () => {
+    logger.info("draw")
     val timeNow = time.now
 
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
@@ -90,9 +89,10 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
   private val program = HwgWebGLProgram(gl, draw)
 
   client.getObservable.collect {
-    case Initialized(lId) =>
+    case Initialized(lId, version) =>
       id = Some(lId)
       ships.update(lId, thisShip)
+      logger.info(s"Starting HWG $version")
     case s: State =>
       lastReceivedState = Some((s, time.estimatedSendTime))
     case Dead(dId) =>
@@ -105,6 +105,7 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
   }
 
   private val tick: () => Unit = () => {
+    logger.info("tick start")
     val deltaTime = lastReceivedState match {
       case Some((state, estimatedSentAt)) =>
         state.ships.foreach { case (id, shipInfo) =>
@@ -130,6 +131,7 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
       client.send(ThisShip(thisShip))
     }
     lastTick = time.nowRaw
+    logger.info("tick end")
     js.timers.RawTimers.setTimeout(tick, tickInterval)
   }
 

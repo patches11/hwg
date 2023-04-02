@@ -1,4 +1,4 @@
-
+enablePlugins(GitVersioning)
 
 val scalaV = "2.12.4"
 
@@ -18,7 +18,6 @@ lazy val root =
       mainClass in Compile := Some("com.hwg.Hwg"),
       name := "HWG",
       organization := "com.hwg",
-      version := "0.0.10",
       docker / dockerfile := {
         val appDir: File = stage.value
         val targetDir = "/app"

@@ -14,12 +14,13 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 import scala.util.{Failure, Success}
 
-class Webservice(implicit system: ActorSystem) extends Directives with LazyLogging {
+class Webservice(version: String)(implicit system: ActorSystem) extends Directives with LazyLogging {
 
-  val systemMaster = system.actorOf(Props(new SystemMaster))
-  val chatMaster   = system.actorOf(Props(new SystemChat))
+  private val systemMaster = system.actorOf(Props(new SystemMaster))
+  private val chatMaster   = system.actorOf(Props(new SystemChat))
+  private val shipFlow = new ShipFlow(version)
 
-  implicit val materializer = ActorMaterializer()
+  private implicit val materializer = ActorMaterializer()
 
   private val streamedFlow = Flow[Message]
     .collect {

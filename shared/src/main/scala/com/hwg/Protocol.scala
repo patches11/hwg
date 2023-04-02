@@ -19,7 +19,7 @@ object Protocol {
                   ships: Map[Int, Ship]
                   ) extends Message
 
-  case class Initialized(id: Int) extends Message
+  case class Initialized(id: Int, version: String) extends Message
 
   case class SendMessage(text: String) extends Message
   case class ReceiveMessage(who: String, time: Long, text: String) extends Message

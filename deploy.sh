@@ -1,3 +1,7 @@
 #!/bin/bash
 
-kubectl apply -f kubernetes/deployment.yaml
+COMMIT=$(git rev-parse HEAD)
+
+FULL_TAG = $COMMIT-SNAPSHOT
+
+envsubst kubernetes/deployment.yaml | kubectl apply -f -

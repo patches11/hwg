@@ -18,8 +18,9 @@ object Hwg extends App with LazyLogging {
   val config = system.settings.config
   val interface = config.getString("app.interface")
   val port = config.getInt("app.port")
+  val version = config.getString("app.version")
 
-  val service = new Webservice
+  val service = new Webservice(version)
 
   val binding = Http().bindAndHandle(service.route, interface, port)
 

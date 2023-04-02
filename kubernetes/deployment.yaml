@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: patrickbrown-us
-          image: 192.168.86.185:31836/hwg:0.0.10
+          image: 192.168.86.185:31836/hwg:$TAG
           resources:
             requests:
               memory: 2G 
@@ -27,5 +27,7 @@ spec:
           env:
           - name: PORT
             value: "8080"
+          - name: VERSION
+            value: $TAG
           ports:
             - containerPort: 8080
