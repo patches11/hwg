@@ -76,6 +76,13 @@ class Time(val client: WebsocketClient) extends LazyLogging {
     new Date().getTime().toLong + currentDelta.getOrElse(0L)
   }
 
+  def estimatedSendTime: Long = {
+    nowRaw - getLatency / 2
+  }
+
+  def getLatency: Long = {
+    this.currentLatency.getOrElse(0)
+  }
 
   private def nextReq: Long = {
     samples.length match {

@@ -18,7 +18,7 @@ import scala.collection.mutable
 
 class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[KeyboardEvent], wheelEvents: Observable[WheelEvent]) extends LazyLogging {
 
-  logger.info("Welcome to HWG 0.0.8")
+  logger.info("Welcome to HWG v0.0.9")
 
   import WebGLRenderingContext._
   import com.hwg.models.ShipControls._
@@ -94,7 +94,7 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
       id = Some(lId)
       ships.update(lId, thisShip)
     case s: State =>
-      lastReceivedState = Some((s, time.nowRaw))
+      lastReceivedState = Some((s, time.estimatedSendTime))
     case Dead(dId) =>
       if (id.contains(dId))
         g.alert("Dead!!!!!")
@@ -108,14 +108,14 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
     logger.info("Tick")
 
     val deltaTime = lastReceivedState match {
-      case Some((state, receivedAt)) =>
+      case Some((state, estimatedSentAt)) =>
         state.ships.foreach { case (id, shipInfo) =>
           val ship = ships.getOrElse(id, Ship())
           ship.updateFrom(shipInfo)
           ships(id) = ship
         }
         lastReceivedState = None
-        time.nowRaw - receivedAt
+        time.nowRaw - estimatedSentAt
       case None =>
         time.nowRaw - lastTick
     }
