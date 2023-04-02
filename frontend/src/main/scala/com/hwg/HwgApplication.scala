@@ -63,6 +63,8 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
     gl.clear(COLOR_BUFFER_BIT)
 
+    program.setCamera(thisX, thisY)
+
     system.draw(drawContext, thisX, thisY, timeNow, program)
 
     logger.info(s"thisShip (${thisX}, ${thisY})")
@@ -91,7 +93,6 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
 
     radar.draw(id, thisShip, ships, system.planets)
 
-    program.setCamera(thisX, thisY)
 
     lastDraw = timeNow
     logger.info("draw end")
