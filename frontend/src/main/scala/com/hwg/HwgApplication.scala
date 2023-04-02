@@ -18,7 +18,7 @@ import scala.collection.mutable
 
 class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[KeyboardEvent], wheelEvents: Observable[WheelEvent]) extends LazyLogging {
 
-  logger.info("Welcome to HWG v0.0.9")
+  logger.info("Welcome to HWG v0.0.10")
 
   import WebGLRenderingContext._
   import com.hwg.models.ShipControls._
@@ -105,8 +105,6 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
   }
 
   private val tick: () => Unit = () => {
-    logger.info("Tick")
-
     val deltaTime = lastReceivedState match {
       case Some((state, estimatedSentAt)) =>
         state.ships.foreach { case (id, shipInfo) =>
@@ -119,6 +117,8 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
       case None =>
         time.nowRaw - lastTick
     }
+
+    logger.info(s"latency ${time.getLatency} delta time $deltaTime")
 
     ships.foreach { case (_, ship) =>
       ship.tick(deltaTime)
