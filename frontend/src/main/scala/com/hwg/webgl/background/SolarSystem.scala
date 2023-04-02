@@ -49,10 +49,10 @@ case class SolarSystem(gl: WebGLRenderingContext) {
 
   private val pointSquare = MathExt.genPointSquare(3, includeOrigin = true)
 
-  def draw(draw: DrawContext, thisShip: Ship, time: Long, program: HwgWebGLProgram): Unit = {
+  def draw(draw: DrawContext, x: Double, y: Double, time: Long, program: HwgWebGLProgram): Unit = {
 
-    val boxX = (thisShip.x / (foregroundSize / (400 / foregroundMod))).toInt
-    val boxY = (thisShip.y / (foregroundSize / (400 / foregroundMod))).toInt
+    val boxX = (x / (foregroundSize / (400 / foregroundMod))).toInt
+    val boxY = (y / (foregroundSize / (400 / foregroundMod))).toInt
     val foregroundAdj = foregroundSize / (200 / foregroundMod)
 
     draw { _ =>
@@ -74,25 +74,25 @@ case class SolarSystem(gl: WebGLRenderingContext) {
     } at 0
 
     draw { ms =>
-      ms.translate(thisShip.x, thisShip.y, -50)
-      starField.draw(program, ms, thisShip.x, thisShip.y)
+      ms.translate(x, y, -50)
+      starField.draw(program, ms, x, y)
     } at -50
 
-    draw ++= smoke.draw(program, thisShip.x / 100, thisShip.y / 100, time)
+    draw ++= smoke.draw(program, x / 100, y / 100, time)
 
     planets.foreach { planet =>
       draw { ms =>
         ms.translate(planet.x, planet.y, planet.z)
         ms.rotateZ(Math.sin(time.toDouble / 1000000 + Math.PI) * Math.PI)
         ms.rotateX(Math.cos(time.toDouble / 1000000 + Math.PI) * Math.PI)
-        planet.model.draw(program, ms, thisShip.x, thisShip.y)
+        planet.model.draw(program, ms, x, y)
       } at planet.z
     }
 
     pointSquare.foreach { point =>
       draw { ms =>
         ms.translate((boxX + point.x) * foregroundAdj, (boxY + point.y) * foregroundAdj, -15)
-        haze.draw(program, ms, thisShip.x, thisShip.y)
+        haze.draw(program, ms, x, y)
       } at -15
     }
 

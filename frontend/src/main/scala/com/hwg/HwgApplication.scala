@@ -57,20 +57,22 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
     logger.info("draw start")
     val timeNow = time.now
 
+    val thisX = math.round(thisShip.x).toDouble
+    val thisY = math.round(thisShip.y).toDouble
 
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
     gl.clear(COLOR_BUFFER_BIT)
 
-    system.draw(drawContext, thisShip, timeNow, program)
+    system.draw(drawContext, thisX, thisY, timeNow, program)
 
-    logger.info(s"thisShip (${thisShip.x}, ${thisShip.y})")
+    logger.info(s"thisShip (${thisX}, ${thisY})")
 
     ships.foreach { case (_, ship) =>
       drawContext { ms =>
         ms.translate(ship.x, ship.y, -20)
         ms.rotateZ(ship.orientation)
 
-        shipModel.draw(program, matrixStack, thisShip.x, thisShip.y)
+        shipModel.draw(program, matrixStack, thisX, thisY)
       } at -20
 
       ship.projectiles.foreach { projectile =>
@@ -78,7 +80,7 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
           ms.translate(projectile.x, projectile.y, -20)
           ms.rotateZ(projectile.orientation)
 
-          laserModel.draw(program, matrixStack, thisShip.x, thisShip.y)
+          laserModel.draw(program, matrixStack, thisX, thisY)
         } at -20
       }
     }
@@ -87,7 +89,7 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
 
     radar.draw(id, thisShip, ships, system.planets)
 
-    program.setCamera(thisShip.x, thisShip.y)
+    program.setCamera(thisX, thisY)
 
     lastDraw = timeNow
     logger.info("draw end")
