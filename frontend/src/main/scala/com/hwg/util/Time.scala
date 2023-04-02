@@ -25,7 +25,6 @@ class Time(val client: WebsocketClient) extends LazyLogging {
       case TimeMessage(sendTime, serverTime, receiveTime) =>
         val latency = receiveTime - sendTime
         val delta = receiveTime - serverTime + latency / 2
-        logger.info(f"time delta ${delta} latency ${latency}")
 
         val sample = TimeDelta(latency, delta)
 

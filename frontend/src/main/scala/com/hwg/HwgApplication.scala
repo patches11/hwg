@@ -18,7 +18,7 @@ import scala.collection.mutable
 
 class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[KeyboardEvent], wheelEvents: Observable[WheelEvent]) extends LazyLogging {
 
-  logger.info("Welcome to HWG 0.0.6")
+  logger.info("Welcome to HWG 0.0.7")
 
   import WebGLRenderingContext._
   import com.hwg.models.ShipControls._
@@ -105,6 +105,7 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
   }
 
   private val tick: () => Unit = () => {
+    logger.info("Tick")
     lastReceivedState.foreach { state =>
       lastTick = state.id
       //this.tickInterval = tick.tickInterval
@@ -137,5 +138,5 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
     js.timers.setTimeout(tickInterval)(tick)
   }
 
-  js.timers.setTimeout(0)(tick)
+  js.timers.setTimeout(tickInterval)(tick)
 }
