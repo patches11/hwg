@@ -59,7 +59,7 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
     gl.clear(COLOR_BUFFER_BIT)
 
-    system.draw(drawContext, thisShip, timeNow, program)
+    //system.draw(drawContext, thisShip, timeNow, program)
 
     ships.foreach { case (_, ship) =>
       drawContext { ms =>
