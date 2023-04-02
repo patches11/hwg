@@ -67,7 +67,9 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
 
     logger.info(s"thisShip (${thisX}, ${thisY})")
 
-    ships.foreach { case (_, ship) =>
+    ships.foreach { case (id, ship) =>
+
+      logger.info(s"ship $id (${ship.x}, ${ship.y})")
       drawContext { ms =>
         ms.translate(ship.x, ship.y, -20)
         ms.rotateZ(ship.orientation)
