@@ -59,9 +59,9 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
     gl.clear(COLOR_BUFFER_BIT)
 
-    //system.draw(drawContext, thisShip, timeNow, program)
+    system.draw(drawContext, thisShip, timeNow, program)
 
-    ships.foreach { case (_, ship) =>
+    /*ships.foreach { case (_, ship) =>
       drawContext { ms =>
         ms.translate(ship.x, ship.y, -20)
         ms.rotateZ(ship.orientation)
@@ -77,7 +77,7 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
           laserModel.draw(program, matrixStack, thisShip.x, thisShip.y)
         } at -20
       }
-    }
+    }*/
 
     drawContext.execute(matrixStack)
 
