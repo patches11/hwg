@@ -19,6 +19,8 @@ import scala.scalajs.js
 
 class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[KeyboardEvent], wheelEvents: Observable[WheelEvent]) extends LazyLogging {
 
+  logger.info("Welcome to HWG 0.0.3")
+
   import WebGLRenderingContext._
   import com.hwg.models.ShipControls._
   import monix.execution.Scheduler.Implicits.global
