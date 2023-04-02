@@ -74,7 +74,7 @@ class Webservice(version: String)(implicit system: ActorSystem) extends Directiv
       getFromResourceDirectory("web")
 
   def websocketFlow(): Flow[Message, Message, Any] = {
-    val shipFlow = ShipFlow.create(system, systemMaster, chatMaster)
+    val shipFlow = shipFlow.create(system, systemMaster, chatMaster)
 
     splitFlow
       .map { bytes =>
