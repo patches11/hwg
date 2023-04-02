@@ -17,6 +17,7 @@ spec:
       containers:
         - name: patrickbrown-us
           image: 192.168.86.185:31836/hwg:0.1
+          imagePullPolicy: Always
           resources:
             requests:
               memory: 2G 
@@ -24,5 +25,8 @@ spec:
             limits:
               memory: 3G
               cpu: 1
+          env:
+            - name: PORT
+              value: 8080
           ports:
             - containerPort: 8080

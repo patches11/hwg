@@ -46,8 +46,7 @@ lazy val frontend =
     .enablePlugins(ScalaJSPlugin)
     .settings(commonSettings: _*)
     .settings(
-      persistLauncher in Compile := true,
-      persistLauncher in Test := false,
+      scalaJSUseMainModuleInitializer := true,
       relativeSourceMaps in Compile := true,
       testFrameworks += new TestFramework("utest.runner.Framework"),
       libraryDependencies ++= Seq(
@@ -73,7 +72,7 @@ lazy val backend =
         "biz.enef" %% "slogging" % "0.6.1"
       ),
       resourceGenerators in Compile += Def.task {
-        val f1 = (fastOptJS in Compile in frontend).value
+        val f1 = (fullOptJS in Compile in frontend).value
         val f2 = (packageScalaJSLauncher in Compile in frontend).value
         Seq(f1.data, f2.data)
       }.taskValue,

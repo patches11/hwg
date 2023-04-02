@@ -7,8 +7,9 @@ import com.hwg.Protocol.TimeMessage
 import scala.collection.mutable.ArrayBuffer
 import scala.scalajs.js.Date
 import scala.scalajs.js
+import slogging.LazyLogging
 
-class Time(val client: WebsocketClient) {
+class Time(val client: WebsocketClient) extends LazyLogging {
   import monix.execution.Scheduler.Implicits.global
 
   private case class TimeDelta(latency: Double, delta: Double)
@@ -55,6 +56,8 @@ class Time(val client: WebsocketClient) {
       val filtered = deltas.filter(delta => delta < median + stdDev && delta > median - stdDev)
 
       Stats.mean(filtered).foreach(delta => setDelta(delta.toLong))
+
+      logger.info(f"time delta ${currentDelta}")
     }
 
   }

@@ -65,6 +65,7 @@ class Webservice(implicit system: ActorSystem) extends Directives with LazyLoggi
         path("frontend-fastopt.js")(getFromResource("frontend-fastopt.js")) ~
         path("frontend-opt.js")(getFromResource("frontend-opt.js")) ~
         path("frontend-fastopt.js.map")(getFromResource("frontend-fastopt.js.map")) ~
+        path("frontend-opt.js.map")(getFromResource("frontend-opt.js.map")) ~
         path("websocket") {
           handleWebSocketMessages(websocketFlow())
         }

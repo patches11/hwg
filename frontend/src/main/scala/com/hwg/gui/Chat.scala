@@ -32,7 +32,7 @@ class Chat(val client: WebsocketClient, val id: Int) {
   messageDiv.className = "flex-column"
   messageDiv.style.overflowY = "scroll"
   messageDiv.style.padding = "5px"
-  messageDiv.style.flexGrow = "1"
+  messageDiv.style.setProperty("flex-grow", "1")
 
   chatBox.appendChild(form)
   chatBox.appendChild(messageDiv)
