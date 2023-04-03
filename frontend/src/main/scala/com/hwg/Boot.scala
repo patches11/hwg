@@ -5,7 +5,7 @@ import monix.execution.{Ack, Cancelable}
 import monix.reactive.Observable
 import monix.reactive.OverflowStrategy.DropOld
 import org.scalajs.dom
-import org.scalajs.dom.raw.{WheelEvent, Window}
+import org.scalajs.dom.raw.WheelEvent
 import org.scalajs.dom.{KeyboardEvent, TouchEvent, html, raw}
 
 import scala.scalajs.js
@@ -22,7 +22,7 @@ object Boot {
 
     val gl: raw.WebGLRenderingContext = canvas.getContext("webgl", {}).asInstanceOf[raw.WebGLRenderingContext]
 
-    dom.window.addEventListener("boot", _ => {
+    dom.window.addEventListener("boot", {
       val page = dom.document.getElementById("page").asInstanceOf[html.Div]
       val ua = dom.window.navigator.userAgent
       val iphone = ua.indexOf("iPhone") > 0 || ua.indexOf("iPod") > 0
