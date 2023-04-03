@@ -22,6 +22,8 @@ object Boot {
 
     val gl: raw.WebGLRenderingContext = canvas.getContext("webgl", {}).asInstanceOf[raw.WebGLRenderingContext]
 
+    dom.window.scrollTo(0, 1)
+
     val keyboardEvents = keyboardEventListener().groupBy(_.keyCode).map(_.distinctUntilChangedByKey(_.`type`)).merge
 
     val touchEvents = touchEventListener()

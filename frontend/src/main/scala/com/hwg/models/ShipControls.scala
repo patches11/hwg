@@ -2,17 +2,42 @@ package com.hwg.models
 
 import com.hwg.gui.Chat
 import monix.reactive.Observable
-import org.scalajs.dom.{KeyboardEvent, TouchEvent}
-import org.scalajs.dom
+import org.scalajs.dom.{KeyboardEvent, TouchEvent, TouchList}
 import slogging.LazyLogging
 
-import scala.scalajs.js
-import scala.scalajs.js.Date
-
 object ShipControls extends LazyLogging {
+
   import monix.execution.Scheduler.Implicits.global
+  import com.hwg.util.TouchListUtils._
 
   implicit class ShipControl(ship: Ship) {
+    def handleTouches(list: TouchList, eventName: String): Unit = {
+      val touches = list.getTouches()
+      ship.accelerating = false
+      ship.manuevering = Manuever.Nothing
+      ship.firing = false
+      touches.foreach { touch =>
+        if (touch.xFrac >= 0.8 && touch.yFromBottom <= 200) {
+          ship.firing = true
+        }
+        if (touch.xFrac <= 0.2) {
+          if (touch.xFrac <= 0.75) {
+            ship.manuevering = Manuever.CCW
+          }
+          if (touch.xFrac >= 1.25) {
+            ship.manuevering = Manuever.CW
+          }
+          if (touch.xFrac > 0.75 && touch.xFrac < 1.25) {
+            if (touch.yFromBottom <= 200 && touch.yFromBottom >= 100) {
+              ship.accelerating = true
+            } else {
+              ship.manuevering = Manuever.Reverse
+            }
+          }
+        }
+      }
+    }
+
     def control(obs: Observable[KeyboardEvent], touch: Observable[TouchEvent], chat: Chat): Unit = {
       obs.foreach {
         case ev if ev.key == "ArrowUp" =>
@@ -47,19 +72,7 @@ object ShipControls extends LazyLogging {
           }
         case _ => // Observables have a nice property of silently swallowing errors so you have to do this
       }
-      touch.foreach {
-        case ev if ev.`type` == "touchstart" =>
-          val touch = ev.touches.item(0)
-          val widthFraction = touch.pageX / dom.document.body.scrollWidth
-          val fromBottom = dom.document.body.scrollHeight - touch.pageY
-          chat.addMessage("System", new Date().getTime().toLong, s"touchstart $widthFraction, $fromBottom")
-          if (widthFraction > 0.8 && fromBottom < 100) {
-            ship.firing = true
-          }
-        case ev if ev.`type` == "touchend" =>
-          chat.addMessage("System", new Date().getTime().toLong, s"touchend")
-          ship.firing = false
-      }
+      touch.foreach(ev => handleTouches(ev.touches, ev.`type`))
     }
   }
 }
