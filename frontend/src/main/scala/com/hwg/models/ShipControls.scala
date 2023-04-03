@@ -21,13 +21,13 @@ object ShipControls extends LazyLogging {
           ship.firing = true
         }
         if (touch.xFrac <= 0.2) {
-          if (touch.xFrac <= 0.075) {
+          if (touch.xFrac <= 0.05) {
             ship.manuevering = Manuever.CCW
           }
-          if (touch.xFrac >= 0.125) {
+          if (touch.xFrac >= 0.15) {
             ship.manuevering = Manuever.CW
           }
-          if (touch.xFrac > 0.075 && touch.xFrac < 0.125) {
+          if (touch.xFrac > 0.05 && touch.xFrac < 0.15) {
             if (touch.yFromBottom <= 250 && touch.yFromBottom >= 175) {
               ship.accelerating = true
             } else {
