@@ -5,8 +5,8 @@ import monix.execution.{Ack, Cancelable}
 import monix.reactive.Observable
 import monix.reactive.OverflowStrategy.DropOld
 import org.scalajs.dom
-import org.scalajs.dom.raw.WheelEvent
-import org.scalajs.dom.{KeyboardEvent, html, raw, TouchEvent}
+import org.scalajs.dom.raw.{WheelEvent, Window}
+import org.scalajs.dom.{KeyboardEvent, TouchEvent, html, raw}
 
 import scala.scalajs.js
 import slogging._
@@ -22,7 +22,22 @@ object Boot {
 
     val gl: raw.WebGLRenderingContext = canvas.getContext("webgl", {}).asInstanceOf[raw.WebGLRenderingContext]
 
-    dom.window.scrollTo(0, 1)
+    dom.window.addEventListener("boot", _ => {
+      val page = dom.document.getElementById("page").asInstanceOf[html.Div]
+      val ua = dom.window.navigator.userAgent
+      val iphone = ua.indexOf("iPhone") > 0 || ua.indexOf("iPod") > 0
+      val ipad = ua.indexOf("iPad") > 0
+      val ios = iphone || ipad
+      val fullscreen = false // dom.window.navigator.standalone
+      if (ios) {
+        var height = dom.document.documentElement.clientHeight;
+        if (iphone && !fullscreen) {
+          height += 60
+        }
+        page.style.height = s"${height}px"
+        dom.window.scrollTo(0, 1)
+      }
+    })
 
     val keyboardEvents = keyboardEventListener().groupBy(_.keyCode).map(_.distinctUntilChangedByKey(_.`type`)).merge
 
