@@ -5,6 +5,9 @@ import org.scalajs.dom.{KeyboardEvent, TouchEvent}
 import org.scalajs.dom
 import slogging.LazyLogging
 
+import scala.scalajs.js
+import js.Dynamic.{global => g}
+
 object ShipControls extends LazyLogging {
   import monix.execution.Scheduler.Implicits.global
 
@@ -45,6 +48,7 @@ object ShipControls extends LazyLogging {
       }
       touch.foreach {
         case ev if ev.`type` == "touchstart" =>
+          g.alert("touchstart")
           val touch = ev.touches.item(0)
           val widthFraction = touch.pageX / dom.document.body.scrollWidth
           val fromBottom = dom.document.body.scrollHeight - touch.pageY

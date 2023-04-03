@@ -36,7 +36,7 @@ object Boot {
       val c = SingleAssignmentCancelable()
       // Forced conversion, otherwise canceling will not work!
       val f: js.Function1[KeyboardEvent, Ack] = (e: KeyboardEvent) =>
-        subscriber.onNext(e).syncOnStopOrFailure((_) => c.cancel())
+        subscriber.onNext(e).syncOnStopOrFailure(_ => c.cancel())
 
       dom.document.addEventListener("keydown", f)
       dom.document.addEventListener("keyup", f)
@@ -52,7 +52,7 @@ object Boot {
       val c = SingleAssignmentCancelable()
       // Forced conversion, otherwise canceling will not work!
       val f: js.Function1[TouchEvent, Ack] = (e: TouchEvent) =>
-        subscriber.onNext(e).syncOnStopOrFailure((_) => c.cancel())
+        subscriber.onNext(e).syncOnStopOrFailure(_ => c.cancel())
 
       dom.document.addEventListener("touchstart", f)
       dom.document.addEventListener("touchend", f)
@@ -70,7 +70,7 @@ object Boot {
       val c = SingleAssignmentCancelable()
       // Forced conversion, otherwise canceling will not work!
       val f: js.Function1[WheelEvent, Ack] = (e: WheelEvent) =>
-        subscriber.onNext(e).syncOnStopOrFailure((_) => c.cancel())
+        subscriber.onNext(e).syncOnStopOrFailure(_ => c.cancel())
 
       dom.document.addEventListener("wheel", f)
       c := Cancelable(() => {

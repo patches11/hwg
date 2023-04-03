@@ -44,10 +44,8 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
 
   private var lastTick: Long = time.now
   private val tickInterval: Long = 25
-  private var lastDraw: Long = time.now
 
   private var lastReceivedState: Option[(State, Long)] = None
-
 
   val radar = new Radar()
 
@@ -86,9 +84,6 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
     drawContext.execute(matrixStack)
 
     radar.draw(id, thisShip, ships, system.planets)
-
-
-    lastDraw = timeNow
   }
 
   private val program = HwgWebGLProgram(gl, draw)
