@@ -62,7 +62,7 @@ class Chat(val client: WebsocketClient, val id: Int) {
     client.send(message)
   }
 
-  private def addMessage(who: String, time: Long, text: String): Unit = {
+  def addMessage(who: String, time: Long, text: String): Unit = {
     val newMessage = dom.document.createElement("div")
     newMessage.innerHTML = s"${new Date(time).timeFormat()} $who - $text"
     val node = messageDiv.appendChild(newMessage)

@@ -26,13 +26,13 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
 
   val client = new WebsocketClient()
   val time = new Time(client)
-  new Chat(client, 0)
+  val chat = new Chat(client, 0)
   private val textureLoader = new TextureLoader(gl)
 
   val thisShip: Ship = Ship()
   var id: Option[Int] = None
 
-  thisShip.control(keyboardEvents, touchEvents)
+  thisShip.control(keyboardEvents, touchEvents, chat)
 
   val ships: mutable.Map[Int, Ship] = mutable.Map()
   val matrixStack = new MatrixStack()
