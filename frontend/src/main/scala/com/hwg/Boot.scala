@@ -6,7 +6,7 @@ import monix.reactive.Observable
 import monix.reactive.OverflowStrategy.DropOld
 import org.scalajs.dom
 import org.scalajs.dom.raw.WheelEvent
-import org.scalajs.dom.{KeyboardEvent, TouchEvent, html, raw}
+import org.scalajs.dom.{Event, KeyboardEvent, TouchEvent, html, raw}
 
 import scala.scalajs.js
 import slogging._
@@ -22,7 +22,7 @@ object Boot {
 
     val gl: raw.WebGLRenderingContext = canvas.getContext("webgl", {}).asInstanceOf[raw.WebGLRenderingContext]
 
-    dom.window.addEventListener("boot", {
+    val onLoad: js.Function1[Event, Unit] = (_ev: Event) => {
       val page = dom.document.getElementById("page").asInstanceOf[html.Div]
       val ua = dom.window.navigator.userAgent
       val iphone = ua.indexOf("iPhone") > 0 || ua.indexOf("iPod") > 0
@@ -37,7 +37,9 @@ object Boot {
         page.style.height = s"${height}px"
         dom.window.scrollTo(0, 1)
       }
-    })
+    }
+
+    dom.window.addEventListener("load", onLoad)
 
     val keyboardEvents = keyboardEventListener().groupBy(_.keyCode).map(_.distinctUntilChangedByKey(_.`type`)).merge
 
