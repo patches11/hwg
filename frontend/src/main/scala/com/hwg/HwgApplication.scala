@@ -6,7 +6,7 @@ import com.hwg.webgl.model.TwoDModel
 import com.hwg.webgl.background.SolarSystem
 import com.hwg.webgl.{DrawContext, HwgWebGLProgram, TextureLoader}
 import monix.reactive.Observable
-import org.scalajs.dom.KeyboardEvent
+import org.scalajs.dom.{KeyboardEvent, TouchEvent}
 import org.scalajs.dom.raw.{WebGLRenderingContext, WheelEvent}
 import Protocol.{Dead, Initialized, State, ThisShip}
 import com.hwg.gui.{Chat, Radar}
@@ -16,7 +16,7 @@ import scala.scalajs.js
 import js.Dynamic.{global => g}
 import scala.collection.mutable
 
-class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[KeyboardEvent], wheelEvents: Observable[WheelEvent]) extends LazyLogging {
+class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[KeyboardEvent], wheelEvents: Observable[WheelEvent], touchEvents: Observable[TouchEvent]) extends LazyLogging {
 
   import WebGLRenderingContext._
   import com.hwg.models.ShipControls._
@@ -32,7 +32,7 @@ class HwgApplication(gl: WebGLRenderingContext, keyboardEvents: Observable[Keybo
   val thisShip: Ship = Ship()
   var id: Option[Int] = None
 
-  thisShip.control(keyboardEvents)
+  thisShip.control(keyboardEvents, touchEvents)
 
   val ships: mutable.Map[Int, Ship] = mutable.Map()
   val matrixStack = new MatrixStack()

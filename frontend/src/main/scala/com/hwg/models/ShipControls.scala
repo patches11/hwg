@@ -1,13 +1,15 @@
 package com.hwg.models
 
 import monix.reactive.Observable
-import org.scalajs.dom.KeyboardEvent
+import org.scalajs.dom.{KeyboardEvent, TouchEvent}
+import org.scalajs.dom
+import slogging.LazyLogging
 
-object ShipControls {
+object ShipControls extends LazyLogging {
   import monix.execution.Scheduler.Implicits.global
 
   implicit class ShipControl(ship: Ship) {
-    def control(obs: Observable[KeyboardEvent]): Unit = {
+    def control(obs: Observable[KeyboardEvent], touch: Observable[TouchEvent]): Unit = {
       obs.foreach {
         case ev if ev.key == "ArrowUp" =>
           if (ev.`type` == "keyup") {
@@ -40,6 +42,17 @@ object ShipControls {
             ship.firing = true
           }
         case _ => // Observables have a nice property of silently swallowing errors so you have to do this
+      }
+      touch.foreach {
+        case ev if ev.`type` == "touchstart" =>
+          val touch = ev.touches.item(0)
+          val widthFraction = touch.pageX / dom.document.body.scrollWidth
+          val fromBottom = dom.document.body.scrollHeight - touch.pageY
+          if (widthFraction > 0.8 && fromBottom < 100) {
+            ship.firing = true
+          }
+        case ev if ev.`type` == "touchend" =>
+          ship.firing = false
       }
     }
   }

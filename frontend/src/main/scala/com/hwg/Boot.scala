@@ -6,7 +6,7 @@ import monix.reactive.Observable
 import monix.reactive.OverflowStrategy.DropOld
 import org.scalajs.dom
 import org.scalajs.dom.raw.WheelEvent
-import org.scalajs.dom.{KeyboardEvent, html, raw}
+import org.scalajs.dom.{KeyboardEvent, html, raw, TouchEvent}
 
 import scala.scalajs.js
 import slogging._
@@ -24,9 +24,11 @@ object Boot {
 
     val keyboardEvents = keyboardEventListener().groupBy(_.keyCode).map(_.distinctUntilChangedByKey(_.`type`)).merge
 
+    val touchEvents = touchEventListener()
+
     val wheelEvents = wheelEventListener
 
-    new HwgApplication(gl, keyboardEvents, wheelEvents)
+    new HwgApplication(gl, keyboardEvents, wheelEvents, touchEvents)
   }
 
   def keyboardEventListener(): Observable[KeyboardEvent] = {
@@ -41,6 +43,24 @@ object Boot {
       c := Cancelable(() => {
         dom.document.removeEventListener("keydown", f)
         dom.document.removeEventListener("keyup", f)
+      })
+    }
+  }
+
+  def touchEventListener(): Observable[TouchEvent] = {
+    Observable.create(DropOld(eventLimit)) { subscriber =>
+      val c = SingleAssignmentCancelable()
+      // Forced conversion, otherwise canceling will not work!
+      val f: js.Function1[TouchEvent, Ack] = (e: TouchEvent) =>
+        subscriber.onNext(e).syncOnStopOrFailure((_) => c.cancel())
+
+      dom.document.addEventListener("touchstart", f)
+      dom.document.addEventListener("touchend", f)
+      dom.document.addEventListener("touchmove", f)
+      c := Cancelable(() => {
+        dom.document.removeEventListener("touchstart", f)
+        dom.document.removeEventListener("touchend", f)
+        dom.document.removeEventListener("touchmove", f)
       })
     }
   }
